@@ -145,7 +145,7 @@ body{background:var(--bg-color);color:var(--text-main);display:flex;justify-cont
       </label>
       <button class="btn btn-secondary" onclick="requestNotif()">🔔 تفعيل إشعار العد التنازلي في شريط الحالة</button>
       <button class="btn btn-secondary" onclick="testNative()">🧪 اختبار إشعار (بعد 10 ثوانٍ)</button>
-      <p style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:10px">الإصدار 3</p>
+      <p style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:10px">الإصدار 4</p>
     </div>
   </div>
   <div class="card">
@@ -456,6 +456,12 @@ async function testNative() {
     alert('سيصلك إشعار بعد 10 ثوانٍ. اترك التطبيق مفتوحاً أو أغلق الشاشة.');
   } catch (e) { alert('خطأ: ' + e); }
 }
+async function startLiveService(all) {
+  const PL = Capacitor.Plugins.PrayerLive;
+  if (!PL) return;
+  all.sort((a, b) => a.t - b.t);
+  await PL.start({items: all.slice(0, 35).map(x => ({name: NAMES_AR[x.k], at: x.t.getTime()}))});
+}
 async function doSchedule() {
   if (!isNative() || !lastSource) return;
   const LN = Capacitor.Plugins.LocalNotifications;
@@ -470,7 +476,7 @@ async function doSchedule() {
     await LN.createChannel(USE_ADHAN_SOUND
       ? {id:'adhan-sound', name:'الأذان', importance:5, vibration:true, sound:'adhan.mp3'}
       : {id:'adhan', name:'وقت الصلاة', importance:5, vibration:true});
-    const now = new Date(), limit = now.getTime() + 7*86400000, items = [];
+    const now = new Date(), limit = now.getTime() + 7*86400000, items = [], all = [];
     for (const off of [0, 1]) {
       const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
       const y = d.getFullYear(), mo = d.getMonth() + 1;
@@ -481,10 +487,9 @@ async function doSchedule() {
       (cal.data || []).forEach(day => {
         const g = day.date.gregorian;
         KEYS.forEach(k => {
-          if (k === 'Sunrise') return;
           const [hh, mm] = day.timings[k].slice(0,5).split(':').map(Number);
           const t = new Date(+g.year, g.month.number - 1, +g.day, hh, mm, 0);
-          if (t.getTime() > now.getTime() && t.getTime() < limit) items.push({k, t});
+          if (t.getTime() > now.getTime() && t.getTime() < limit) { all.push({k, t}); if (k !== 'Sunrise') items.push({k, t}); }
         });
       });
     }
@@ -495,6 +500,7 @@ async function doSchedule() {
       list.push({id: id++, title: `حان وقت صلاة ${NAMES_AR[k]}`, body: 'حيّ على الصلاة', channelId: USE_ADHAN_SOUND ? 'adhan-sound' : 'adhan', smallIcon: 'ic_stat_icon', schedule: {at: t, allowWhileIdle: true}});
     });
     if (list.length) await LN.schedule({notifications: list.slice(0, 60)});
+    await startLiveService(all);
   } catch (e) { console.error('schedule', e); }
 }
 
