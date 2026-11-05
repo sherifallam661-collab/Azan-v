@@ -1,0 +1,6 @@
+{
+  "appId": "com.example.prayerqibla",
+  "appName": "مواقيت الصلاة",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
