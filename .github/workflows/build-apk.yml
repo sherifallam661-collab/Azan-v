@@ -24,16 +24,7 @@ jobs:
           cat $M
       - name: Launcher icon and notification icon
         run: |
-          set -e
-          test -f icon.png
           R=android/app/src/main/res
-          rm -rf $R/mipmap-anydpi-v26 $R/drawable-v24/ic_launcher_foreground.xml $R/drawable/ic_launcher_background.xml
-          for pair in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
-            d=${pair%%:*}; s=${pair##*:}
-            mkdir -p $R/mipmap-$d
-            convert icon.png -resize ${s}x${s} $R/mipmap-$d/ic_launcher.png
-            cp $R/mipmap-$d/ic_launcher.png $R/mipmap-$d/ic_launcher_round.png
-          done
           mkdir -p $R/drawable $R/raw
           cat > $R/drawable/ic_stat_icon.xml <<'XML'
           <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
@@ -41,7 +32,21 @@ jobs:
           </vector>
           XML
           cp -n resources/raw/* $R/raw/ 2>/dev/null || true
-          ls $R/mipmap-xxxhdpi $R/drawable
+          if [ -f icon.png ]; then
+            if command -v magick >/dev/null 2>&1; then IM="magick"
+            elif command -v convert >/dev/null 2>&1; then IM="convert"
+            else sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick && IM="convert"; fi
+            rm -rf $R/mipmap-anydpi-v26 $R/drawable-v24/ic_launcher_foreground.xml $R/drawable/ic_launcher_background.xml
+            for pair in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
+              d=${pair%%:*}; s=${pair##*:}
+              mkdir -p $R/mipmap-$d
+              $IM icon.png -resize ${s}x${s} $R/mipmap-$d/ic_launcher.png
+              cp $R/mipmap-$d/ic_launcher.png $R/mipmap-$d/ic_launcher_round.png
+            done
+          else
+            echo "WARNING: icon.png not found in repo root, default launcher icon kept"
+          fi
+          ls $R/drawable
       - run: npx cap sync android
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
