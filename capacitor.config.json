@@ -1,0 +1,14 @@
+{
+  "appId": "com.example.prayerqibla",
+  "appName": "Prayer Times-Azan",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon",
+      "iconColor": "#e6b94a"
+    }
+  }
+}
