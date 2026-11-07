@@ -1,0 +1,2921 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Prayer Times-Azan</title>
+<meta name="description" content="Prayer times and Qibla direction web app with Islamic calendar, adhan notifications, and custom themes.">
+<meta property="og:title" content="Prayer Times-Azan">
+<meta property="og:description" content="Prayer times and Qibla direction web app with Islamic calendar, adhan notifications, and custom themes.">
+<link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<meta property="og:image" content="icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#060606">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-color:#060606;
+  --card-bg:#101010;
+  --text-main:#f8fafc;
+  --text-muted:#94a3b8;
+  --primary:#e6b94a;
+  --primary-dark:#b8860b;
+  --border:rgba(230,185,74,0.3);
+  --box-bg-1:#161616;
+  --box-bg-2:#090909;
+  --compass-bg:#0a0a0a;
+  --gold-grad:linear-gradient(180deg,#f7d874,#c8962a);
+}
+[data-theme=blue]{
+  --bg-color:#050b1c;
+  --card-bg:#0b1430;
+  --box-bg-1:#121c3b;
+  --box-bg-2:#070f26;
+  --compass-bg:#07102a;
+}
+[data-theme=green]{
+  --bg-color:#041a11;
+  --card-bg:#0b2b1d;
+  --box-bg-1:#0e2e20;
+  --box-bg-2:#05170f;
+  --compass-bg:#061c13;
+}
+[data-theme=burgundy]{
+  --bg-color:#20070a;
+  --card-bg:#330a10;
+  --box-bg-1:#3b0f16;
+  --box-bg-2:#1b0508;
+  --compass-bg:#23080d;
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:'Cairo',system-ui,-apple-system,sans-serif;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  height:100%;
+  overscroll-behavior:none;
+}
+
+body{
+  position:fixed;
+  inset:0;
+  height:100dvh;
+  background:var(--bg-color);
+  color:var(--text-main);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+
+.app-container{
+  width:100%;
+  max-width:480px;
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  height:100dvh;
+  position:relative;
+  background:var(--bg-color);
+  box-shadow:0 0 35px rgba(0,0,0,0.8);
+  overflow:hidden;
+}
+
+/* Header: Distinctive, Royal Islamic Mihrab & Landmark Skyline styling */
+.header{
+  position:relative;
+  height:calc(82px + env(safe-area-inset-top, 0px));
+  padding-top:env(safe-area-inset-top, 0px);
+  flex:none;
+  overflow:hidden;
+  background:radial-gradient(ellipse 130% 120% at 50% 0%,rgba(247,216,116,0.22),transparent 75%),
+             linear-gradient(180deg,#151006 0%,#0c0905 50%,#050403 100%);
+  border-bottom:1.5px solid rgba(230,185,74,0.38);
+  box-shadow:0 6px 25px rgba(0,0,0,0.8), inset 0 1px 0 rgba(247,216,116,0.3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+[data-theme=blue] .header{
+  background:radial-gradient(ellipse 130% 120% at 50% 0%,rgba(96,165,250,0.25),transparent 75%),
+             linear-gradient(180deg,#0a1538 0%,#060c24 50%,#030612 100%);
+  border-bottom-color:rgba(230,185,74,0.42);
+}
+[data-theme=green] .header{
+  background:radial-gradient(ellipse 130% 120% at 50% 0%,rgba(52,211,153,0.25),transparent 75%),
+             linear-gradient(180deg,#0a2e20 0%,#061d14 50%,#020d09 100%);
+  border-bottom-color:rgba(230,185,74,0.42);
+}
+[data-theme=burgundy] .header{
+  background:radial-gradient(ellipse 130% 120% at 50% 0%,rgba(244,114,182,0.2),transparent 75%),
+             linear-gradient(180deg,#3f0f1a 0%,#27070f 50%,#110206 100%);
+  border-bottom-color:rgba(230,185,74,0.42);
+}
+.header-islamic-pattern{
+  position:absolute;
+  inset:0;
+  height:100%;
+  width:100%;
+  pointer-events:none;
+}
+.header-in{
+  position:relative;
+  z-index:3;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:3px 16px 2px;
+  background:radial-gradient(ellipse 95% 100% at 50% 50%,rgba(12,9,4,0.88) 0%,rgba(8,6,3,0.72) 65%,transparent 100%);
+  border-radius:20px;
+  backdrop-filter:blur(2.5px);
+  -webkit-backdrop-filter:blur(2.5px);
+  margin-top:14px;
+}
+/* Mini Adhan Popup Modal */
+.adhan-modal-overlay{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  background:rgba(0,0,0,0.78);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease;
+}
+.adhan-modal-overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+.adhan-modal-card{
+  position:relative;
+  width:100%;
+  max-width:320px;
+  background:linear-gradient(180deg,#1c1810,#0c0b08);
+  border:1.5px solid var(--primary);
+  border-radius:20px;
+  padding:22px 18px 18px;
+  text-align:center;
+  box-shadow:0 10px 35px rgba(0,0,0,0.9), 0 0 25px rgba(230,185,74,0.3);
+  transform:scale(0.92);
+  transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+.adhan-modal-overlay.show .adhan-modal-card{
+  transform:scale(1);
+}
+.adhan-modal-close-x{
+  position:absolute;
+  top:10px;
+  left:12px;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(230,185,74,0.3);
+  color:#fff;
+  font-size:20px;
+  line-height:28px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.adhan-anim-icon{
+  position:relative;
+  width:64px;
+  height:64px;
+  margin:0 auto 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.adhan-mosque-svg{
+  width:46px;
+  height:46px;
+  filter:drop-shadow(0 0 10px rgba(247,216,116,0.7));
+  position:relative;
+  z-index:2;
+}
+.adhan-ripple{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  border:2px solid var(--primary);
+  animation:adhanPulse 2s infinite ease-out;
+}
+@keyframes adhanPulse{
+  0%{transform:scale(0.8);opacity:1}
+  100%{transform:scale(1.5);opacity:0}
+}
+.adhan-modal-call{
+  font-family:'Amiri',serif;
+  font-size:24px;
+  font-weight:700;
+  color:var(--primary);
+  text-shadow:0 0 10px rgba(230,185,74,0.4);
+  margin-bottom:4px;
+}
+.adhan-modal-sub{
+  font-size:14px;
+  color:#e2e8f0;
+  margin-bottom:14px;
+}
+.adhan-modal-sub b{
+  color:#ffe685;
+  font-weight:800;
+}
+.sound-wave{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  height:24px;
+  margin-bottom:16px;
+}
+.sound-wave span{
+  width:3px;
+  background:var(--primary);
+  border-radius:2px;
+  animation:wave 1.2s infinite ease-in-out;
+}
+.sound-wave span:nth-child(1){height:8px;animation-delay:0.1s}
+.sound-wave span:nth-child(2){height:18px;animation-delay:0.3s}
+.sound-wave span:nth-child(3){height:24px;animation-delay:0.5s}
+.sound-wave span:nth-child(4){height:16px;animation-delay:0.2s}
+.sound-wave span:nth-child(5){height:10px;animation-delay:0.4s}
+@keyframes wave{
+  0%,100%{transform:scaleY(0.4)}
+  50%{transform:scaleY(1)}
+}
+.btn-close-adhan{
+  margin-top:0;
+  background:linear-gradient(180deg,#d97706,#b45309);
+  color:#fff;
+  border:1px solid #fcd34d;
+  box-shadow:0 4px 14px rgba(217,119,6,0.4);
+}
+.header-royal-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  position:relative;
+}
+.badge-wing{
+  display:inline-flex;
+  align-items:center;
+  opacity:0.9;
+}
+.badge-wing svg{
+  width:32px;
+  height:13px;
+  filter:drop-shadow(0 0 4px rgba(230,185,74,0.6));
+}
+.header h1{
+  font-family:'Amiri',serif;
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:0.8px;
+  line-height:1.15;
+  margin:0;
+  padding:0 2px;
+  background:linear-gradient(180deg,#ffffff 0%,#fff2b2 32%,#fedd6b 62%,#d49b22 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,0.9)) drop-shadow(0 0 12px rgba(247,216,116,0.5));
+  transition:all 0.25s ease;
+}
+.header-sub-divider{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  margin-top:2px;
+  color:#f7d874;
+  font-size:8px;
+  opacity:0.88;
+}
+.header-sub-divider .line{
+  width:36px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,#e6b94a);
+}
+.header-sub-divider .line:last-child{
+  background:linear-gradient(270deg,transparent,#e6b94a);
+}
+.header-sub-divider .gem{
+  font-size:7px;
+  color:#fedd6b;
+  filter:drop-shadow(0 0 2px rgba(230,185,74,0.6));
+}
+.header-sub-divider .crescent{
+  font-size:10px;
+  line-height:1;
+  color:#fff2b2;
+  filter:drop-shadow(0 0 4px rgba(255,234,160,0.85));
+  margin:0 1px;
+}
+
+/* 3D Embossed Notification Icon */
+.icon-3d{
+  width:24px;
+  height:24px;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.75)) drop-shadow(0 0 5px rgba(247,216,116,0.45));
+  transition:transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display:inline-block;
+  vertical-align:middle;
+  flex:none;
+}
+.sec-h .icon-3d{
+  width:26px;
+  height:26px;
+}
+.btn-notif-action{
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 3px 12px rgba(230,185,74,0.25), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.btn-notif-action:active .icon-3d{
+  transform:rotate(-12deg) scale(1.15);
+}
+
+/* Content: GPU compositor scrolling, zero lag */
+.content{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+  padding:6px 10px 62px;
+  scroll-behavior:smooth;
+  transform:translateZ(0);
+  will-change:scroll-position;
+}
+.content::-webkit-scrollbar{
+  width:3px;
+}
+.content::-webkit-scrollbar-track{
+  background:transparent;
+}
+.content::-webkit-scrollbar-thumb{
+  background:rgba(230,185,74,0.3);
+  border-radius:3px;
+}
+
+.screen{
+  display:none;
+  animation:fadeIn 0.18s ease-out;
+}
+.screen.active{
+  display:block;
+}
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(3px)}
+  to{opacity:1;transform:none}
+}
+
+.gold-box{
+  border:1px solid rgba(230,185,74,0.28);
+  box-shadow:0 2px 8px rgba(0,0,0,0.45);
+  background:linear-gradient(180deg,var(--box-bg-1),var(--box-bg-2));
+}
+
+/* Crystal-Clear Location Frame */
+.location-frame{
+  position:relative;
+  height:88px;
+  border-radius:13px;
+  overflow:hidden;
+  margin-bottom:7px;
+  background:#111;
+  border:1px solid rgba(230,185,74,0.4);
+  box-shadow:0 3px 12px rgba(0,0,0,0.5);
+}
+.loc-photo{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  background:#1a1a1a center/cover no-repeat;
+  filter:none;
+}
+.loc-fade{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  background:linear-gradient(90deg, transparent 35%, rgba(0,0,0,0.5) 75%, rgba(0,0,0,0.82) 100%),
+             linear-gradient(0deg, rgba(0,0,0,0.65) 0%, transparent 55%);
+  pointer-events:none;
+}
+/* Weather Badge in Timings Section */
+.loc-weather-badge{
+  position:absolute;
+  top:8px;
+  left:8px;
+  z-index:3;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:3px 8px;
+  background:rgba(8,8,8,0.78);
+  border:1px solid rgba(230,185,74,0.38);
+  border-radius:10px;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  box-shadow:0 3px 10px rgba(0,0,0,0.65);
+  cursor:pointer;
+  transition:transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  user-select:none;
+  text-decoration:none;
+}
+.loc-weather-badge:hover, .loc-weather-badge:active{
+  transform:scale(0.97);
+  border-color:var(--primary);
+  background:rgba(18,18,18,0.92);
+}
+.weather-icon-badge{
+  font-size:15px;
+  line-height:1;
+  display:inline-block;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+}
+.weather-temp-badge{
+  font-size:13px;
+  font-weight:800;
+  color:#ffffff;
+  font-variant-numeric:tabular-nums;
+  line-height:1;
+  text-shadow:0 1px 4px rgba(0,0,0,0.9);
+}
+.weather-desc-badge{
+  font-size:11px;
+  color:#ffe685;
+  font-weight:700;
+  line-height:1;
+  max-width:80px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  text-shadow:0 1px 4px rgba(0,0,0,0.9);
+}
+.loc-text{
+  position:absolute;
+  inset:0;
+  padding:10px 14px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:4px;
+  text-align:right;
+  z-index:2;
+}
+.location-title{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:16px;
+  font-weight:800;
+  color:#ffffff;
+  text-shadow:0 2px 8px rgba(0,0,0,0.95);
+  line-height:1.2;
+}
+.location-title svg{
+  width:19px;
+  height:19px;
+  color:var(--primary);
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.9));
+  flex:none;
+}
+#landmark-name{
+  font-size:12px;
+  font-weight:700;
+  color:#ffe685;
+  direction:ltr;
+  text-align:right;
+  min-height:16px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  text-shadow:0 2px 6px rgba(0,0,0,0.95);
+  letter-spacing:0.2px;
+}
+
+/* Compact Date Bar */
+.date-bar{
+  display:flex;
+  align-items:stretch;
+  border-radius:12px;
+  margin-bottom:7px;
+  overflow:hidden;
+  border:1px solid rgba(230,185,74,0.32);
+  background:linear-gradient(180deg,rgba(22,22,22,0.95),rgba(10,10,10,0.95));
+  box-shadow:0 2px 8px rgba(0,0,0,0.45);
+}
+.db-col{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:4px 6px;
+  text-align:center;
+}
+.db-l{
+  font-size:9.5px;
+  color:var(--text-muted);
+  margin-bottom:1px;
+}
+.db-v{
+  font-size:12px;
+  font-weight:600;
+  color:#f1f5f9;
+  line-height:1.2;
+  font-variant-numeric:tabular-nums;
+}
+.db-day{
+  flex:0 0 28%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-left:1px solid rgba(230,185,74,0.3);
+  border-right:1px solid rgba(230,185,74,0.3);
+  background:linear-gradient(180deg,rgba(230,185,74,0.14),rgba(230,185,74,0.03));
+}
+.db-day span{
+  font-family:'Amiri',serif;
+  font-size:17.5px;
+  font-weight:700;
+  color:var(--primary);
+  text-shadow:0 0 7px rgba(230,185,74,0.4);
+}
+
+/* Compact Next Prayer Card */
+.next-prayer-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:13px;
+  margin-bottom:7px;
+  background:radial-gradient(circle at 12% 50%,rgba(230,185,74,0.14),transparent 65%),linear-gradient(180deg,var(--box-bg-1),var(--box-bg-2));
+}
+.next-prayer-title{
+  color:#cbd5e1;
+  font-size:13px;
+  font-weight:600;
+}
+.next-prayer-title span{
+  color:var(--primary);
+  font-weight:800;
+  font-size:15px;
+}
+.nd{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--primary),transparent);
+  margin:3px 0 4px;
+}
+.countdown-timer{
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:0.5px;
+  direction:ltr;
+  text-align:right;
+  line-height:1;
+  color:#fff;
+  font-variant-numeric:tabular-nums;
+}
+.circle-container{
+  position:relative;
+  width:54px;
+  height:54px;
+  flex:none;
+}
+.circle-container .ring{
+  transform:rotate(-90deg);
+  width:100%;
+  height:100%;
+}
+.circle-container .mi{
+  position:absolute;
+  left:14px;
+  top:14px;
+  width:26px;
+  height:26px;
+  color:var(--primary);
+}
+.circle-bg{
+  fill:none;
+  stroke:rgba(230,185,74,0.15);
+  stroke-width:4;
+}
+.circle-progress{
+  fill:none;
+  stroke:var(--primary);
+  stroke-width:4;
+  stroke-dasharray:157.08;
+  stroke-dashoffset:0;
+  stroke-linecap:round;
+  transition:stroke-dashoffset 1s linear,stroke 0.3s;
+}
+@keyframes pulse-warning{
+  0%,100%{filter:drop-shadow(0 0 3px #ff4d4d)}
+  50%{filter:drop-shadow(0 0 8px #ff4d4d)}
+}
+.warning-active .circle-progress{
+  stroke:#ff4d4d!important;
+  animation:pulse-warning 1.5s infinite;
+}
+.warning-active .countdown-timer{
+  color:#ff4d4d;
+}
+
+/* Compact Prayers List */
+.prayers-list{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.prayer-box{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:6px 12px;
+  border-radius:11px;
+  font-weight:700;
+  font-size:14px;
+  transition:border-color 0.2s, background 0.2s;
+}
+.prayer-box .pi{
+  width:19px;
+  height:19px;
+  color:var(--primary);
+  flex:none;
+}
+.prayer-box .tw{
+  margin-right:auto;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:var(--primary);
+}
+.prayer-box .tw svg{
+  width:15px;
+  height:15px;
+  opacity:0.75;
+}
+.prayer-time{
+  font-size:14.5px;
+  font-weight:700;
+  color:var(--primary);
+  font-variant-numeric:tabular-nums;
+}
+.prayer-box.active-prayer{
+  border-color:var(--primary);
+  background:linear-gradient(90deg,rgba(230,185,74,0.18),var(--box-bg-1));
+  box-shadow:0 0 8px rgba(230,185,74,0.3);
+}
+
+/* Compact Settings Screen */
+.sec{
+  border-radius:13px;
+  margin-bottom:7px;
+  overflow:hidden;
+}
+.sec-h{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:7px 11px;
+  background:linear-gradient(90deg,rgba(230,185,74,0.12),transparent);
+  color:var(--primary);
+  font-weight:700;
+  font-size:13.5px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.sec-h svg{
+  width:17px;
+  height:17px;
+}
+.sec-b{
+  padding:8px 11px;
+}
+.input-group{
+  margin-bottom:7px;
+}
+.input-group label,.lbl{
+  display:block;
+  margin-bottom:4px;
+  font-size:12px;
+  color:#cbd5e1;
+  font-weight:600;
+}
+.input-group input[type=text],.sel{
+  width:100%;
+  padding:7px 11px;
+  border-radius:10px;
+  border:1px solid rgba(230,185,74,0.25);
+  background:#090909;
+  color:var(--text-main);
+  outline:none;
+  font-size:13px;
+  font-weight:600;
+}
+.sel{
+  -webkit-appearance:none;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23e6b94a' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:left 9px center;
+}
+.btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  width:100%;
+  background:var(--gold-grad);
+  color:#1a1203;
+  padding:8px 12px;
+  border:1px solid #ffe9a0;
+  border-radius:11px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  margin-top:6px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.4);
+  transition:transform 0.1s ease;
+}
+.btn svg{
+  width:16px;
+  height:16px;
+}
+.btn:active{
+  transform:scale(0.98);
+}
+.btn-secondary{
+  background:transparent;
+  color:var(--primary);
+  border:1px solid var(--primary);
+  box-shadow:none;
+}
+.tg{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:5px 0;
+  font-size:12.5px;
+}
+.tg input{
+  -webkit-appearance:none;
+  appearance:none;
+  width:40px;
+  height:23px;
+  border-radius:12px;
+  background:#334155;
+  position:relative;
+  flex:none;
+  outline:none;
+  cursor:pointer;
+  border:0;
+  transition:background 0.2s;
+}
+.tg input::after{
+  content:'';
+  position:absolute;
+  top:2.5px;
+  left:3px;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:#fff;
+  transition:left 0.2s;
+}
+.tg input:checked{
+  background:#22c55e;
+}
+.tg input:checked::after{
+  left:19px;
+}
+.vol{
+  width:100%;
+  -webkit-appearance:none;
+  appearance:none;
+  height:6px;
+  border-radius:3px;
+  background:#334155;
+  outline:none;
+  margin:5px 0 7px;
+}
+.vol::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:var(--gold-grad);
+  border:1.5px solid #ffe9a0;
+  box-shadow:0 0 5px rgba(230,185,74,0.45);
+}
+.swatches{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-top:5px;
+}
+.sw{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:2px solid #555;
+  cursor:pointer;
+  transition:border-color 0.15s, box-shadow 0.15s;
+}
+.sw.on{
+  border-color:var(--primary);
+  box-shadow:0 0 8px var(--primary);
+}
+.custom-upload-container{
+  display:none;
+  margin-top:6px;
+}
+.btn-upload{
+  width:100%;
+  background:transparent;
+  color:var(--primary);
+  padding:7px;
+  border:1px dashed var(--primary);
+  border-radius:10px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+}
+.footer{
+  text-align:center;
+  padding:5px 0;
+}
+.vline{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#cbd5e1;
+  font-size:11.5px;
+}
+.vline::before,.vline::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(230,185,74,0.4));
+}
+.vline::after{
+  background:linear-gradient(270deg,transparent,rgba(230,185,74,0.4));
+}
+.footer p{
+  font-size:11px;
+  color:var(--text-muted);
+  margin-top:2px;
+}
+.sig{
+  margin-top:3px;
+  font-family:'Great Vibes','Brush Script MT',cursive;
+  font-size:20px;
+  color:var(--primary);
+  direction:ltr;
+  text-shadow:0 0 6px rgba(230,185,74,0.3);
+}
+
+/* Compact Compass Qibla Screen */
+.compass-container{
+  text-align:center;
+  padding:8px;
+  border-radius:13px;
+}
+.hint{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  text-align:center;
+  font-size:12px;
+  font-weight:600;
+  color:#e2e8f0;
+  margin-bottom:6px;
+}
+.hint svg{
+  width:18px;
+  height:18px;
+  color:var(--primary);
+  flex:none;
+}
+.compass-circle{
+  width:210px;
+  height:210px;
+  max-width:100%;
+  margin:4px auto 0;
+  position:relative;
+  border-radius:50%;
+  border:3px solid var(--primary);
+  background:radial-gradient(circle,#141414,var(--compass-bg));
+  box-shadow:0 0 14px rgba(230,185,74,0.22),inset 0 0 18px #000;
+}
+#compass-dial{
+  position:absolute;
+  inset:0;
+  transition:transform 0.2s ease-out;
+}
+#compass-dial svg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+}
+.qibla-arrow{
+  position:absolute;
+  left:calc(50% - 2.5px);
+  bottom:50%;
+  width:5px;
+  height:65px;
+  background:linear-gradient(0deg,rgba(230,185,74,0.25),var(--primary));
+  border-radius:3px;
+  transform-origin:bottom center;
+}
+.qibla-arrow::after{
+  content:'';
+  position:absolute;
+  top:-9px;
+  left:-5.5px;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-bottom:13px solid var(--primary);
+}
+.kaaba{
+  position:absolute;
+  top:-44px;
+  left:50%;
+  width:30px;
+  height:28px;
+  transform:translateX(-50%);
+}
+.kaaba svg{
+  width:100%;
+  height:100%;
+  filter:drop-shadow(0 0 4px rgba(230,185,74,0.6));
+}
+.aligned .qibla-arrow,.aligned .qibla-arrow::after{
+  background:#4ade80;
+  border-bottom-color:#4ade80;
+}
+.aligned .compass-circle{
+  border-color:#4ade80;
+}
+.aligned .qibla-arrow::after{
+  background:transparent;
+}
+.compass-degree{
+  min-width:140px;
+  width:auto;
+  display:inline-block;
+  padding:4px 16px;
+  margin:8px auto 4px;
+  border-radius:12px;
+  background:var(--gold-grad);
+  color:#111;
+  font-size:22px;
+  font-weight:800;
+  line-height:1.2;
+  border:1px solid #ffe9a0;
+  box-shadow:0 0 8px rgba(230,185,74,0.25);
+  font-variant-numeric:tabular-nums;
+  transition:all 0.2s ease;
+}
+.aligned .compass-degree{
+  background:linear-gradient(180deg,#86efac,#22c55e);
+  color:#052e16;
+  border-color:#bbf7d0;
+  box-shadow:0 0 14px rgba(34,197,94,0.5);
+}
+.qibla-target-badge{
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-muted);
+  margin-bottom:6px;
+}
+.qibla-target-badge b{
+  color:var(--primary);
+  font-weight:700;
+}
+.qstat{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  font-size:12.5px;
+  color:#cbd5e1;
+  min-height:22px;
+  margin-top:2px;
+  transition:color 0.2s;
+}
+.aligned .qstat{
+  color:#4ade80;
+  font-weight:700;
+}
+.qstat svg{
+  width:17px;
+  height:17px;
+  color:var(--primary);
+}
+
+/* Compact Bottom Nav */
+.bottom-nav{
+  position:absolute;
+  bottom:0;
+  left:0;
+  right:0;
+  display:flex;
+  gap:5px;
+  padding:4px 6px calc(4px + env(safe-area-inset-bottom));
+  background:linear-gradient(0deg,rgba(6,6,6,0.96) 65%,rgba(6,6,6,0.85) 85%,transparent);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  z-index:20;
+  border-top:1px solid rgba(230,185,74,0.22);
+}
+.nav-item{
+  flex:1;
+  min-height:42px;
+  border-radius:11px;
+  border:1px solid rgba(230,185,74,0.25);
+  background:linear-gradient(180deg,#1c1c1c,#070707);
+  color:var(--primary);
+  padding:3px 2px;
+  font-weight:700;
+  font-size:11.5px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:1px;
+  cursor:pointer;
+  transition:background 0.15s, color 0.15s;
+}
+.nav-item.active{
+  background:var(--gold-grad);
+  color:#1a1203;
+  box-shadow:0 0 8px rgba(230,185,74,0.35);
+}
+.nav-item svg{
+  width:18px;
+  height:18px;
+}
+
+/* ===== تكبير الترويسة وبطاقة المعلم ===== */
+.header{height:calc(clamp(96px, 15dvh, 126px) + env(safe-area-inset-top, 0px))}
+.header h1{font-size:29px;letter-spacing:1px}
+.header-in{padding:8px 26px 6px;border-radius:26px}
+.badge-wing svg{width:44px;height:18px}
+.header-sub-divider{margin-top:5px}
+.header-sub-divider .line{width:52px}
+.header-sub-divider .crescent{font-size:14px}
+.location-frame{height:clamp(104px, 17dvh, 150px);border-radius:18px;margin-bottom:8px}
+.loc-fade{background:linear-gradient(0deg,rgba(0,0,0,.72) 0%,rgba(0,0,0,.25) 38%,transparent 62%)}
+.loc-text{justify-content:flex-end;padding:12px 16px}
+.location-title{font-size:19px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-mosque" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12,2 L12.7,5 H11.3 Z M5.5,20 V14 C5.5,10.5 8.5,8 12,8 C15.5,8 18.5,10.5 18.5,14 V20 Z M2,20 V11 L3.4,8 L4.8,11 V20 Z M19.2,20 V11 L20.6,8 L22,11 V20 Z M10.4,20 V16.3 A1.6,1.6 0 0 1 13.6,16.3 V20 Z M2,21 H22 V22.4 H2 Z"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.5.5 0 0 0-.61.22L2.65 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.12.22.37.29.61.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.49 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></symbol>
+<symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 7.5l-2.2 6.8-6.8 2.2 2.2-6.8z" fill="currentColor"/></symbol>
+<symbol id="i-bell" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="mosque-dome-3d" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#fffce8"/>
+      <stop offset="20%" stop-color="#fedd6b"/>
+      <stop offset="60%" stop-color="#d49b22"/>
+      <stop offset="100%" stop-color="#734704"/>
+    </linearGradient>
+    <linearGradient id="mosque-gold-spec" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#804d02"/>
+      <stop offset="45%" stop-color="#ffea98"/>
+      <stop offset="100%" stop-color="#6e4001"/>
+    </linearGradient>
+    <linearGradient id="mosque-arch-gate" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#140f03"/>
+      <stop offset="100%" stop-color="#3b2b06"/>
+    </linearGradient>
+    <filter id="landmark-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#000000" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+  <!-- Finial Crescent atop Main Dome -->
+  <path d="M16 1.2 C15.4 1.2 14.8 1.6 14.8 2.2 C14.8 2.7 15.1 3.1 15.6 3.2 C15 3.5 14.6 4.1 14.6 4.8 C14.6 5.8 15.4 6.6 16.4 6.6 C17 6.6 17.5 6.3 17.8 5.8 C17.2 6 16.6 5.8 16.3 5.2 C15.9 4.6 16.1 4 16.5 3.5 C16.2 3.3 16 2.8 16 2.2 C16 1.6 16 1.2 16 1.2 Z" fill="#fffbe0" filter="url(#landmark-glow)"/>
+  <!-- Grand 3D Pointed Onion Dome (قبة المسجد المركزية المجسمة) -->
+  <path d="M16 4.2 C16 4.2 9.8 9.5 9.8 16 C9.8 18.8 11.8 20.2 16 20.2 C20.2 20.2 22.2 18.8 22.2 16 C22.2 9.5 16 4.2 16 4.2 Z" fill="url(#mosque-dome-3d)" filter="url(#landmark-glow)"/>
+  <!-- 3D Specular Highlight on Dome -->
+  <path d="M16 5.5 C15 7 11.8 10.8 11.8 15.2 C11.8 17 12.8 18.2 14.5 18.8 C13.2 18.2 12.4 16.8 12.4 14.8 C12.4 10.8 15 7 16 5.5 Z" fill="#ffffff" opacity="0.65"/>
+  <!-- Dome Drum Base -->
+  <rect x="11" y="19.8" width="10" height="2" rx="0.6" fill="url(#mosque-gold-spec)"/>
+  <!-- Left Minaret (مئذنة يسار كاملة الارتفاع) -->
+  <path d="M4.5 5.2 L5.5 2.2 L6.5 5.2 Z" fill="#fff2b2"/>
+  <rect x="4.8" y="5.2" width="1.4" height="6.2" fill="url(#mosque-gold-spec)"/>
+  <rect x="3.8" y="11.4" width="3.4" height="1.8" rx="0.5" fill="url(#mosque-dome-3d)"/>
+  <rect x="4.2" y="13.2" width="2.6" height="14" fill="url(#mosque-gold-spec)"/>
+  <line x1="5.5" y1="13.2" x2="5.5" y2="27.2" stroke="#fff5c0" stroke-width="0.7" opacity="0.75"/>
+  <!-- Right Minaret (مئذنة يمين كاملة الارتفاع) -->
+  <path d="M25.5 5.2 L26.5 2.2 L27.5 5.2 Z" fill="#fff2b2"/>
+  <rect x="25.8" y="5.2" width="1.4" height="6.2" fill="url(#mosque-gold-spec)"/>
+  <rect x="24.8" y="11.4" width="3.4" height="1.8" rx="0.5" fill="url(#mosque-dome-3d)"/>
+  <rect x="25.2" y="13.2" width="2.6" height="14" fill="url(#mosque-gold-spec)"/>
+  <line x1="26.5" y1="13.2" x2="26.5" y2="27.2" stroke="#fff5c0" stroke-width="0.7" opacity="0.75"/>
+  <!-- Central Building Walls with Arches -->
+  <path d="M6.8 21.8 L25.2 21.8 L25.2 27.2 L6.8 27.2 Z" fill="url(#mosque-dome-3d)"/>
+  <!-- Grand Arched Portal (محراب وباب المسجد الرئيسي) -->
+  <path d="M12.8 27.2 V23.4 C12.8 21.8 14.2 20.8 16 20.8 C17.8 20.8 19.2 21.8 19.2 23.4 V27.2 Z" fill="url(#mosque-arch-gate)" stroke="#ffeaa0" stroke-width="0.8"/>
+  <circle cx="16" cy="23.2" r="1.1" fill="#fedd6b"/>
+  <!-- Main Foundation Base -->
+  <rect x="2.5" y="27.2" width="27" height="3" rx="1" fill="url(#mosque-gold-spec)"/>
+  <line x1="3" y1="27.2" x2="29" y2="27.2" stroke="#fffce8" stroke-width="0.8"/>
+</symbol>
+<symbol id="i-landmark-notif" viewBox="0 0 32 32"><use href="#i-bell"/></symbol>
+<symbol id="i-speaker" viewBox="0 0 24 24"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></symbol>
+<symbol id="i-palette" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3a9 9 0 0 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.3-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.4a4.1 4.1 0 0 0 4.1-4.1C21.5 6.9 17.2 3 12 3zM6.5 12a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4v16l13-8z"/></symbol>
+</defs></svg>
+<div class="app-container">
+<div class="header">
+  <svg class="header-islamic-pattern" viewBox="0 0 420 96" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <!-- Sky & Atmosphere Gradients -->
+      <radialGradient id="sky-glow" cx="50%" cy="30%" r="65%">
+        <stop offset="0%" stop-color="#ffeaa0" stop-opacity="0.25"/>
+        <stop offset="45%" stop-color="#d49b22" stop-opacity="0.10"/>
+        <stop offset="85%" stop-color="#734704" stop-opacity="0.03"/>
+        <stop offset="100%" stop-color="transparent" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="gold-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="transparent"/>
+        <stop offset="15%" stop-color="#e6b94a" stop-opacity="0.45"/>
+        <stop offset="50%" stop-color="#fff2b2" stop-opacity="0.95"/>
+        <stop offset="85%" stop-color="#e6b94a" stop-opacity="0.45"/>
+        <stop offset="100%" stop-color="transparent"/>
+      </linearGradient>
+      <!-- 3D Gold Metallic Gradient for Landmark Silhouette -->
+      <linearGradient id="mosque-gold-far" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ffeaa0" stop-opacity="0.35"/>
+        <stop offset="60%" stop-color="#d49b22" stop-opacity="0.20"/>
+        <stop offset="100%" stop-color="#543702" stop-opacity="0.08"/>
+      </linearGradient>
+      <linearGradient id="mosque-gold-mid" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#fff5c0" stop-opacity="0.75"/>
+        <stop offset="30%" stop-color="#fedd6b" stop-opacity="0.60"/>
+        <stop offset="70%" stop-color="#b8860b" stop-opacity="0.40"/>
+        <stop offset="100%" stop-color="#3b2502" stop-opacity="0.25"/>
+      </linearGradient>
+      <linearGradient id="mosque-gold-fore" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+        <stop offset="25%" stop-color="#ffeaa0" stop-opacity="0.85"/>
+        <stop offset="70%" stop-color="#d49b22" stop-opacity="0.65"/>
+        <stop offset="100%" stop-color="#613e02" stop-opacity="0.50"/>
+      </linearGradient>
+      <filter id="vector-glow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.85"/>
+      </filter>
+    </defs>
+
+    <!-- Sky Glow -->
+    <rect x="0" y="0" width="420" height="96" fill="url(#sky-glow)"/>
+
+    <!-- Stars in Night Sky -->
+    <g fill="#ffeaa0" opacity="0.65">
+      <circle cx="45" cy="12" r="1"/>
+      <circle cx="95" cy="18" r="0.8"/>
+      <circle cx="150" cy="8" r="1.1"/>
+      <circle cx="270" cy="8" r="1.1"/>
+      <circle cx="325" cy="18" r="0.8"/>
+      <circle cx="375" cy="12" r="1"/>
+      <path d="M 70,6 L 71,9 L 74,10 L 71,11 L 70,14 L 69,11 L 66,10 L 69,9 Z" opacity="0.75"/>
+      <path d="M 350,6 L 351,9 L 354,10 L 351,11 L 350,14 L 349,11 L 346,10 L 349,9 Z" opacity="0.75"/>
+    </g>
+
+    <!-- LAYER 1: Distant Mosques & Domes -->
+    <g fill="url(#mosque-gold-far)" opacity="0.8">
+      <path d="M 12,24 L 14,8 L 16,24 Z"/>
+      <rect x="13" y="24" width="2" height="60"/>
+      <path d="M 40,55 C 40,40 50,34 50,34 C 50,34 60,40 60,55 Z"/>
+      <path d="M 80,60 C 80,48 90,44 90,44 C 90,44 100,48 100,60 Z"/>
+      <path d="M 320,60 C 320,48 330,44 330,44 C 330,44 340,48 340,60 Z"/>
+      <path d="M 360,55 C 360,40 370,34 370,34 C 370,34 380,40 380,55 Z"/>
+      <path d="M 404,24 L 406,8 L 408,24 Z"/>
+      <rect x="405" y="24" width="2" height="60"/>
+    </g>
+
+    <!-- LAYER 2: Grand Midground Islamic Landmark Monuments -->
+    <g filter="url(#vector-glow)">
+      <!-- Left Soaring Outer Minaret -->
+      <g fill="url(#mosque-gold-fore)" stroke="#fff2b2" stroke-width="0.3">
+        <path d="M 28,3.5 C 27.2,3.5 26.5,4 26.5,4.7 C 26.5,5.3 26.9,5.8 27.5,6 C 26.8,6.3 26.3,7 26.3,7.8 C 26.3,8.9 27.2,9.8 28.3,9.8 C 29,9.8 29.6,9.4 29.9,8.8 C 29.2,9 28.5,8.7 28.2,8 C 27.8,7.3 28,6.7 28.5,6.2 C 28.2,6 28,5.5 28,4.7 Z" fill="#fffbe0" stroke="none"/>
+        <path d="M 25,14 L 28,6 L 31,14 Z"/>
+        <rect x="23.5" y="14" width="9" height="3" rx="0.6"/>
+        <rect x="25.5" y="17" width="5" height="15"/>
+        <path d="M 27,24 C 27,21.5 29,21.5 29,24 V 28 H 27 Z" fill="#0d0903" stroke="none"/>
+        <rect x="23" y="32" width="10" height="3.5" rx="0.8"/>
+        <path d="M 24.5,35.5 L 23.5,92 H 32.5 L 31.5,35.5 Z"/>
+        <line x1="28" y1="35.5" x2="28" y2="92" stroke="#fffbe0" stroke-width="0.6" stroke-opacity="0.7"/>
+        <rect x="22" y="90" width="12" height="5" rx="0.5"/>
+      </g>
+
+      <!-- Left Onion Dome Landmark -->
+      <g fill="url(#mosque-gold-mid)" stroke="#e6b94a" stroke-width="0.4">
+        <path d="M 62,17 L 62,22 M 60.5,19 C 62,18 63.5,19 63.5,20 C 63.5,21.2 62,21.5 60.5,21" stroke="#fff5c0" stroke-width="0.7" fill="none"/>
+        <path d="M 62,22 C 62,22 47,29 47,44 C 47,49 51,52 62,52 C 73,52 77,49 77,44 C 77,29 62,22 62,22 Z"/>
+        <path d="M 62,24 C 60,27 52,32 52,43 C 52,47 55,49 59,50 C 56,48 54,45 54,42 C 54,33 60,27 62,24 Z" fill="#ffffff" opacity="0.45" stroke="none"/>
+        <rect x="49" y="52" width="26" height="5" rx="0.5"/>
+        <path d="M 52,57 V 65 H 72 V 57 Z"/>
+        <path d="M 55,65 V 60 C 55,58.5 57,58.5 57,60 V 65 Z" fill="#0d0903" stroke="none"/>
+        <path d="M 61,65 V 60 C 61,58.5 63,58.5 63,60 V 65 Z" fill="#0d0903" stroke="none"/>
+        <path d="M 67,65 V 60 C 67,58.5 69,58.5 69,60 V 65 Z" fill="#0d0903" stroke="none"/>
+      </g>
+
+      <!-- Left Arched Colonnade Wall -->
+      <g fill="url(#mosque-gold-mid)" stroke="#e6b94a" stroke-width="0.4">
+        <rect x="76" y="56" width="34" height="36"/>
+        <path d="M 80,92 V 68 C 80,64 87,64 87,68 V 92 Z" fill="#0d0903" stroke="#e6b94a" stroke-width="0.5"/>
+        <path d="M 91,92 V 68 C 91,64 98,64 98,68 V 92 Z" fill="#0d0903" stroke="#e6b94a" stroke-width="0.5"/>
+        <path d="M 102,92 V 68 C 102,64 109,64 109,68 V 92 Z" fill="#0d0903" stroke="#e6b94a" stroke-width="0.5"/>
+        <path d="M 76,56 L 79,52 L 82,56 L 85,52 L 88,56 L 91,52 L 94,56 L 97,52 L 100,56 L 103,52 L 106,56 L 109,52 L 110,56 Z" fill="url(#mosque-gold-fore)"/>
+      </g>
+
+      <!-- Right Arched Colonnade Wall -->
+      <g fill="url(#mosque-gold-mid)" stroke="#e6b94a" stroke-width="0.4">
+        <rect x="310" y="56" width="34" height="36"/>
+        <path d="M 311,92 V 68 C 311,64 318,64 318,68 V 92 Z" fill="#0d0903" stroke="#e6b94a" stroke-width="0.5"/>
+        <path d="M 322,92 V 68 C 322,64 329,64 329,68 V 92 Z" fill="#0d0903" stroke="#e6b94a" stroke-width="0.5"/>
+        <path d="M 333,92 V 68 C 333,64 340,64 340,68 V 92 Z" fill="#0d0903" stroke="#e6b94a" stroke-width="0.5"/>
+        <path d="M 310,56 L 311,52 L 314,56 L 317,52 L 320,56 L 323,52 L 326,56 L 329,52 L 332,56 L 335,52 L 338,56 L 341,52 L 344,56 Z" fill="url(#mosque-gold-fore)"/>
+      </g>
+
+      <!-- Right Onion Dome Landmark -->
+      <g fill="url(#mosque-gold-mid)" stroke="#e6b94a" stroke-width="0.4">
+        <path d="M 358,17 L 358,22 M 356.5,19 C 358,18 359.5,19 359.5,20 C 359.5,21.2 358,21.5 356.5,21" stroke="#fff5c0" stroke-width="0.7" fill="none"/>
+        <path d="M 358,22 C 358,22 343,29 343,44 C 343,49 347,52 358,52 C 369,52 373,49 373,44 C 373,29 358,22 358,22 Z"/>
+        <path d="M 358,24 C 356,27 348,32 348,43 C 348,47 351,49 355,50 C 352,48 350,45 350,42 C 350,33 356,27 358,24 Z" fill="#ffffff" opacity="0.45" stroke="none"/>
+        <rect x="345" y="52" width="26" height="5" rx="0.5"/>
+        <path d="M 348,57 V 65 H 368 V 57 Z"/>
+        <path d="M 351,65 V 60 C 351,58.5 353,58.5 353,60 V 65 Z" fill="#0d0903" stroke="none"/>
+        <path d="M 357,65 V 60 C 357,58.5 359,58.5 359,60 V 65 Z" fill="#0d0903" stroke="none"/>
+        <path d="M 363,65 V 60 C 363,58.5 365,58.5 365,60 V 65 Z" fill="#0d0903" stroke="none"/>
+      </g>
+
+      <!-- Right Soaring Outer Minaret -->
+      <g fill="url(#mosque-gold-fore)" stroke="#fff2b2" stroke-width="0.3">
+        <path d="M 392,3.5 C 391.2,3.5 390.5,4 390.5,4.7 C 390.5,5.3 390.9,5.8 391.5,6 C 390.8,6.3 390.3,7 390.3,7.8 C 390.3,8.9 391.2,9.8 392.3,9.8 C 393,9.8 393.6,9.4 393.9,8.8 C 393.2,9 392.5,8.7 392.2,8 C 391.8,7.3 392,6.7 392.5,6.2 C 392.2,6 392,5.5 392,4.7 Z" fill="#fffbe0" stroke="none"/>
+        <path d="M 389,14 L 392,6 L 395,14 Z"/>
+        <rect x="387.5" y="14" width="9" height="3" rx="0.6"/>
+        <rect x="389.5" y="17" width="5" height="15"/>
+        <path d="M 391,24 C 391,21.5 393,21.5 393,24 V 28 H 391 Z" fill="#0d0903" stroke="none"/>
+        <rect x="387" y="32" width="10" height="3.5" rx="0.8"/>
+        <path d="M 388.5,35.5 L 387.5,92 H 396.5 L 395.5,35.5 Z"/>
+        <line x1="392" y1="35.5" x2="392" y2="92" stroke="#fffbe0" stroke-width="0.6" stroke-opacity="0.7"/>
+        <rect x="386" y="90" width="12" height="5" rx="0.5"/>
+      </g>
+
+      <!-- Center Grand Mosque Mihrab Arch Framing -->
+      <path d="M 120,95 L 120,62 C 120,38 160,14 210,5 C 260,14 300,38 300,62 L 300,95 Z" fill="none" stroke="url(#gold-stroke)" stroke-width="1.6"/>
+      <path d="M 134,95 L 134,64 C 134,44 168,22 210,14 C 252,22 286,44 286,64 L 286,95 Z" fill="none" stroke="url(#gold-stroke)" stroke-width="0.9" stroke-dasharray="3,3" opacity="0.75"/>
+
+      <!-- Central Grand Dome Finial & Crescent at Peak -->
+      <g fill="url(#mosque-gold-fore)" stroke="#fff2b2" stroke-width="0.3">
+        <path d="M 210,0.5 C 209,0.5 208,1.2 208,2.1 C 208,2.8 208.5,3.4 209.3,3.7 C 208.3,4.1 207.7,5 207.7,6 C 207.7,7.4 208.8,8.5 210.3,8.5 C 211.2,8.5 212,8 212.4,7.2 C 211.5,7.5 210.6,7.1 210.2,6.2 C 209.7,5.3 210,4.5 210.6,3.9 C 210.2,3.6 210,3 210,2.1 Z" fill="#fffbe0" stroke="none"/>
+        <circle cx="210" cy="9.5" r="1.5"/>
+        <circle cx="210" cy="12.5" r="1.1"/>
+        <path d="M 194,24 C 194,18 202,14 210,13 C 218,14 226,18 226,24 Z" fill="url(#mosque-gold-mid)" stroke="#e6b94a" stroke-width="0.5"/>
+        <line x1="192" y1="24" x2="228" y2="24" stroke="#fff2b2" stroke-width="0.8"/>
+      </g>
+
+      <!-- Twin Flanking Inner Minaret Tops at Center -->
+      <g fill="url(#mosque-gold-mid)" stroke="#e6b94a" stroke-width="0.3">
+        <path d="M 148,34 L 150,22 L 152,34 Z"/>
+        <circle cx="150" cy="20.5" r="1.1" fill="#fffbe0"/>
+        <rect x="147.5" y="34" width="5" height="2"/>
+        <rect x="148.5" y="36" width="3" height="18"/>
+        <path d="M 268,34 L 270,22 L 272,34 Z"/>
+        <circle cx="270" cy="20.5" r="1.1" fill="#fffbe0"/>
+        <rect x="267.5" y="34" width="5" height="2"/>
+        <rect x="268.5" y="36" width="3" height="18"/>
+      </g>
+    </g>
+
+    <!-- Foreground Bottom Golden Foundation Line -->
+    <line x1="0" y1="95" x2="420" y2="95" stroke="url(#gold-stroke)" stroke-width="1.8"/>
+    <line x1="0" y1="92" x2="420" y2="92" stroke="url(#gold-stroke)" stroke-width="0.6" stroke-dasharray="2,3" opacity="0.65"/>
+  </svg>
+
+  <div class="header-in">
+    <div class="header-royal-badge">
+      <span class="badge-wing left">
+        <svg viewBox="0 0 36 14"><path d="M36,7 C26,7 18,2 8,1 C16,4 24,9 36,9 Z" fill="#e6b94a"/><circle cx="5" cy="1" r="1.5" fill="#f7d874"/></svg>
+      </span>
+      <h1 id="header-title">مواقيت الصلاة</h1>
+      <span class="badge-wing right">
+        <svg viewBox="0 0 36 14"><path d="M0,7 C10,7 18,2 28,1 C20,4 12,9 0,9 Z" fill="#e6b94a"/><circle cx="31" cy="1" r="1.5" fill="#f7d874"/></svg>
+      </span>
+    </div>
+    <div class="header-sub-divider">
+      <span class="line"></span>
+      <span class="gem">◆</span>
+      <span class="crescent">☽</span>
+      <span class="gem">◆</span>
+      <span class="line"></span>
+    </div>
+  </div>
+</div>
+<div class="content">
+
+<div id="screen-timings" class="screen active">
+  <div class="location-frame gold-box">
+    <div class="loc-photo" id="location-bg"></div><div class="loc-fade"></div>
+    <div class="loc-weather-badge" id="loc-weather-badge" onclick="showWeatherDetails()" title="الطقس الحالي (انقر لعرض التفاصيل)">
+      <span class="weather-icon-badge" id="weather-icon">🌤️</span>
+      <span class="weather-temp-badge" id="weather-temp">--°</span>
+      <span class="weather-desc-badge" id="weather-desc">الطقس</span>
+    </div>
+    <div class="loc-text">
+      <div class="location-title"><svg><use href="#i-pin"/></svg><span id="display-location">جاري التحديد...</span></div>
+      <div id="landmark-name"></div>
+    </div>
+  </div>
+  <div class="date-bar gold-box">
+    <div class="db-col"><span class="db-l">التاريخ الهجري</span><span class="db-v" id="hijri-date">--</span></div>
+    <div class="db-day"><span id="day-name">--</span></div>
+    <div class="db-col"><span class="db-l">التاريخ الميلادي</span><span class="db-v" id="greg-date">--</span></div>
+  </div>
+  <div class="next-prayer-card gold-box" id="next-prayer-card">
+    <div>
+      <div class="next-prayer-title">باقي على صلاة <span id="next-prayer-name">--</span></div>
+      <div class="nd"></div>
+      <div class="countdown-timer" id="countdown-timer">00:00:00</div>
+    </div>
+    <div class="circle-container">
+      <svg class="ring" viewBox="0 0 60 60"><circle class="circle-bg" cx="30" cy="30" r="25"></circle><circle class="circle-progress" id="prayer-progress" cx="30" cy="30" r="25"></circle></svg>
+      <svg class="mi"><use href="#i-mosque"/></svg>
+    </div>
+  </div>
+  <div class="prayers-list">
+    <div class="prayer-box gold-box" id="row-Fajr"><svg class="pi"><use href="#i-mosque"/></svg><span>الفجر</span><span class="tw"><span class="prayer-time" id="Fajr">--:--</span><svg><use href="#i-clock"/></svg></span></div>
+    <div class="prayer-box gold-box" id="row-Sunrise"><svg class="pi"><use href="#i-mosque"/></svg><span>الشروق</span><span class="tw"><span class="prayer-time" id="Sunrise">--:--</span><svg><use href="#i-clock"/></svg></span></div>
+    <div class="prayer-box gold-box" id="row-Dhuhr"><svg class="pi"><use href="#i-mosque"/></svg><span>الظهر</span><span class="tw"><span class="prayer-time" id="Dhuhr">--:--</span><svg><use href="#i-clock"/></svg></span></div>
+    <div class="prayer-box gold-box" id="row-Asr"><svg class="pi"><use href="#i-mosque"/></svg><span>العصر</span><span class="tw"><span class="prayer-time" id="Asr">--:--</span><svg><use href="#i-clock"/></svg></span></div>
+    <div class="prayer-box gold-box" id="row-Maghrib"><svg class="pi"><use href="#i-mosque"/></svg><span>المغرب</span><span class="tw"><span class="prayer-time" id="Maghrib">--:--</span><svg><use href="#i-clock"/></svg></span></div>
+    <div class="prayer-box gold-box" id="row-Isha"><svg class="pi"><use href="#i-mosque"/></svg><span>العشاء</span><span class="tw"><span class="prayer-time" id="Isha">--:--</span><svg><use href="#i-clock"/></svg></span></div>
+  </div>
+</div>
+
+<div id="screen-qibla" class="screen">
+  <div class="compass-container gold-box">
+    <div class="hint"><svg><use href="#i-compass"/></svg><span>ضع الهاتف بشكل مسطح للحصول على دقة أفضل</span></div>
+    <div class="compass-circle" id="compass-circle">
+      <div id="compass-dial">
+        <svg id="dial-svg" viewBox="0 0 290 290"></svg>
+        <div class="qibla-arrow" id="qibla-arrow"><span class="kaaba" id="kaaba"><svg viewBox="0 0 40 38"><path d="M3 10 L27 4 L38 8 L14 14 Z" fill="#2b2b2b" stroke="#e6b94a" stroke-width="1.2"/><path d="M3 10 L14 14 L14 36 L3 32 Z" fill="#0b0b0b" stroke="#e6b94a" stroke-width="1.2"/><path d="M14 14 L38 8 L38 30 L14 36 Z" fill="#161616" stroke="#e6b94a" stroke-width="1.2"/><path d="M14 19 L38 13 L38 17 L14 23 Z" fill="#e6b94a"/></svg></span></div>
+      </div>
+    </div>
+    <div class="compass-degree" id="qibla-degree">--°</div>
+    <div class="qibla-target-badge">زاوية القبلة لموقعك: <b id="qibla-target-angle">--°</b> من الشمال</div>
+    <div class="qstat"><svg><use href="#i-pin"/></svg><span id="qibla-status">جاري توجيه البوصلة...</span></div>
+    <button class="btn btn-secondary" id="compass-btn" style="margin-top:10px;width:auto;display:inline-flex;padding:7px 18px" onclick="enableCompass()"><svg><use href="#i-compass"/></svg>معايرة / تفعيل البوصلة</button>
+  </div>
+</div>
+
+<div id="screen-settings" class="screen">
+  <div class="sec gold-box">
+    <div class="sec-h"><svg><use href="#i-palette"/></svg>المظهر والتصميم</div>
+    <div class="sec-b">
+      <span class="lbl">مظهر التطبيق</span>
+      <select class="sel" id="theme-selector" onchange="changeTheme()">
+        <option value="charcoal">الأسود الفحمي (الافتراضي)</option>
+        <option value="blue">أزرق ليلي ملكي</option>
+        <option value="green">أخضر زمردي</option>
+        <option value="burgundy">أحمر عنابي (برغندي)</option>
+      </select>
+      <span class="lbl" style="margin-top:10px">معاينة الألوان</span>
+      <div class="swatches" id="swatches">
+        <span class="sw" data-t="charcoal" style="background:#0a0a0a"></span>
+        <span class="sw" data-t="blue" style="background:#0a1128"></span>
+        <span class="sw" data-t="green" style="background:#0b2b1d"></span>
+        <span class="sw" data-t="burgundy" style="background:#3d1017"></span>
+      </div>
+    </div>
+  </div>
+  <div class="sec gold-box">
+    <div class="sec-h"><svg><use href="#i-speaker"/></svg>إعدادات صوت الأذان</div>
+    <div class="sec-b">
+      <span class="lbl">اختيار المؤذن</span>
+      <select class="sel" id="adhan-selector" onchange="saveAdhan()">
+        <option value="abdulbasit">أذان عبد الباسط عبد الصمد</option>
+        <option value="mishary">أذان مشاري راشد العفاسي</option>
+        <option value="custom">ملف صوتي من الجهاز 🎵</option>
+      </select>
+      <div id="custom-upload-section" class="custom-upload-container">
+        <input type="file" id="custom-adhan-input" accept="audio/*" style="display:none" onchange="handleCustomAdhanUpload(event)">
+        <button class="btn-upload" onclick="document.getElementById('custom-adhan-input').click()">
+          <span>اختر ملف الصوت من هاتفك</span>
+          <span id="custom-file-status" style="font-size:12px;font-weight:400;color:var(--text-muted)">(لم يتم اختيار ملف بعد)</span>
+        </button>
+      </div>
+      <button class="btn" onclick="previewAdhan()"><svg><use href="#i-play"/></svg>استماع تجريبي للصوت</button>
+      <button class="btn btn-secondary" onclick="stopAdhanAll()"><svg><use href="#i-stop"/></svg>إيقاف الأذان</button>
+      <span class="lbl" style="margin-top:14px">مستوى صوت الأذان: <b id="vol-val" style="color:var(--primary)">100%</b></span>
+      <input type="range" id="adhan-volume" class="vol" min="0" max="100" step="5" value="100" oninput="setAdhanVolume(this.value)">
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:6px">يتأثر أيضاً بمستوى صوت المنبه في هاتفك.</p>
+      <label class="tg"><span>تشغيل الأذان تلقائياً عند دخول الوقت</span><input type="checkbox" id="auto-adhan" onchange="localStorage.setItem('auto-adhan',this.checked?'1':'0');scheduleNative()"></label>
+    </div>
+  </div>
+  <div class="sec gold-box">
+    <div class="sec-h"><svg><use href="#i-clock"/></svg>صوت التنبيه قبل الصلاة بـ 15 دقيقة</div>
+    <div class="sec-b">
+      <span class="lbl">اختيار الصوت</span>
+      <select class="sel" id="reminder-selector" onchange="saveReminder()">
+        <option value="chime">جرس هادئ</option>
+        <option value="beep">تنبيه قصير (3 نغمات)</option>
+        <option value="default">نغمة الإشعار الافتراضية للهاتف</option>
+        <option value="alarm">نغمة المنبه</option>
+        <option value="custom">ملف صوتي من الجهاز 🎵</option>
+        <option value="none">بدون صوت</option>
+      </select>
+      <div id="reminder-custom-section" class="custom-upload-container">
+        <input type="file" id="reminder-file-input" accept="audio/*" style="display:none" onchange="handleReminderUpload(event)">
+        <button class="btn-upload" onclick="document.getElementById('reminder-file-input').click()">
+          <span>اختر ملف الصوت من هاتفك</span>
+          <span id="reminder-file-status" style="font-size:12px;font-weight:400;color:var(--text-muted)">(لم يتم اختيار ملف بعد)</span>
+        </button>
+      </div>
+      <button class="btn" onclick="previewReminder()"><svg><use href="#i-play"/></svg>استماع تجريبي للصوت</button>
+    </div>
+  </div>
+  <div class="sec gold-box">
+    <div class="sec-h"><svg class="icon-3d"><use href="#i-bell"/></svg>إعدادات الإشعارات</div>
+    <div class="sec-b">
+      <button class="btn btn-notif-action" onclick="requestNotif()"><svg class="icon-3d"><use href="#i-bell"/></svg>تفعيل إشعار العد التنازلي في شريط الحالة</button>
+      <button class="btn btn-secondary" onclick="testNative()"><svg><use href="#i-clock"/></svg>اختبار الإشعار (بعد 10 ثوانٍ)</button>
+    </div>
+  </div>
+  <div class="sec gold-box">
+    <div class="sec-h"><svg><use href="#i-speaker"/></svg>شاشة الأذان المنبثقة</div>
+    <div class="sec-b">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:6px">لتظهر شاشة الأذان تلقائياً فوق التطبيقات الأخرى حتى لو كان التطبيق مغلقاً، فعّل "الظهور فوق التطبيقات الأخرى" لهذا التطبيق.</p>
+      <button class="btn" onclick="openOverlaySettings()"><svg><use href="#i-gear"/></svg>السماح بالظهور فوق التطبيقات</button>
+      <div id="overlay-status" style="text-align:center;font-size:13px;margin-top:6px;color:var(--text-muted)"></div>
+      <button class="btn btn-secondary" onclick="openFullScreenSettings()"><svg><use href="#i-bell"/></svg>إعدادات الإشعارات بملء الشاشة</button>
+    </div>
+  </div>
+  <div class="sec gold-box">
+    <div class="sec-h"><svg><use href="#i-pin"/></svg>إعدادات الموقع</div>
+    <div class="sec-b">
+      <div id="loc-perm-status" style="text-align:center;font-size:13px;margin-bottom:6px;color:var(--text-muted)"></div>
+      <button class="btn" onclick="requestLocationPermission()"><svg><use href="#i-pin"/></svg>طلب إذن الموقع</button>
+      <button class="btn btn-secondary" onclick="openAppSettings()"><svg><use href="#i-gear"/></svg>فتح إعدادات صلاحيات التطبيق</button>
+      <label class="tg"><span>تحديث الموقع تلقائياً عند فتح التطبيق</span><input type="checkbox" id="auto-location" onchange="toggleAutoLocation(this.checked)"></label>
+      <button class="btn" onclick="getLocationByGPS()"><svg><use href="#i-pin"/></svg>تحديث الموقع عبر GPS</button>
+      <div class="input-group" style="margin-top:12px"><label>المدينة (إنجليزي)</label><input type="text" id="manual-city" placeholder="مثال: Cairo"></div>
+      <div class="input-group"><label>الدولة (إنجليزي)</label><input type="text" id="manual-country" placeholder="مثال: Egypt"></div>
+      <button class="btn" onclick="saveManualLocation()">حفظ وتحديث المواقيت</button>
+    </div>
+  </div>
+  <div class="sec gold-box" style="text-align:center;padding:16px 12px">
+    <img src="icon.png" alt="App Icon" style="width:62px;height:62px;border-radius:15px;border:1.5px solid rgba(230,185,74,0.5);box-shadow:0 4px 14px rgba(0,0,0,0.65),0 0 10px rgba(230,185,74,0.3);object-fit:cover;margin:0 auto 8px;display:block">
+    <div style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:3px">مواقيت الصلاة والأذان</div>
+    <div style="font-size:12px;color:var(--text-muted)">تطبيق الأذان والقبلة للأجهزة الذكية</div>
+  </div>
+  <div class="footer">
+    <div class="vline"><span>V 1.0</span></div>
+    <p>جميع الحقوق محفوظة</p>
+    <div class="sig">Idea : sherif allam</div>
+  </div>
+</div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchTab('timings',this,'مواقيت الصلاة')"><svg><use href="#i-mosque"/></svg>المواقيت</div>
+  <div class="nav-item" onclick="switchTab('qibla',this,'اتجاه القبلة')"><svg><use href="#i-compass"/></svg>القبلة</div>
+  <div class="nav-item" onclick="switchTab('settings',this,'الإعدادات')"><svg><use href="#i-gear"/></svg>الإعدادات</div>
+</div>
+
+<!-- Mini Adhan Popup Modal with Close/Stop Button -->
+<div id="adhan-modal-overlay" class="adhan-modal-overlay">
+  <div class="adhan-modal-card gold-box">
+    <button class="adhan-modal-close-x" onclick="closeAdhanModal()" aria-label="إغلاق">&times;</button>
+    <div class="adhan-anim-icon">
+      <svg class="adhan-mosque-svg" viewBox="0 0 32 32"><use href="#i-landmark-notif"/></svg>
+      <div class="adhan-ripple"></div>
+    </div>
+    <div class="adhan-modal-call">حيّ على الصلاة</div>
+    <div class="adhan-modal-sub">حان الآن وقت أذان <b id="adhan-modal-prayer-name">الصلاة</b></div>
+    <div class="sound-wave">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <button class="btn btn-close-adhan" onclick="closeAdhanModal()">
+      <svg viewBox="0 0 24 24" style="width:20px;height:20px"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4 11H8v-2h8v2z"/></svg>
+      إيقاف الأذان وإغلاق
+    </button>
+  </div>
+</div>
+</div>
+
+<script>
+// Sandboxed iframe-safe alert replacement
+window.alert = function(msg) {
+  let toast = document.getElementById('app-custom-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-custom-toast';
+    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,0.96);color:#f7d874;border:1.5px solid #e6b94a;border-radius:14px;padding:12px 20px;font-size:15px;font-weight:700;z-index:99999;box-shadow:0 8px 24px rgba(0,0,0,0.85);max-width:90%;text-align:center;pointer-events:none;transition:opacity 0.3s ease;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => {
+    toast.style.opacity = '0';
+  }, 3500);
+};
+
+// ملفات الأذان داخل التطبيق (مجلد www)
+const ADHAN_URLS = {abdulbasit: 'adhan_abdulbasit.mp3', mishary: 'adhan_mishary.mp3'};
+const KEYS = ['Fajr','Sunrise','Dhuhr','Asr','Maghrib','Isha'];
+const NAMES_AR = {Fajr:'الفجر',Sunrise:'الشروق',Dhuhr:'الظهر',Asr:'العصر',Maghrib:'المغرب',Isha:'العشاء'};
+let permChain = Promise.resolve();
+function permGate(fn) {   // طلب الأذونات واحداً تلو الآخر حتى لا يتعارض طلبان معاً
+  const run = () => Promise.resolve().then(fn);
+  const p = permChain.then(run, run);
+  permChain = p.then(() => {}, () => {});
+  return p;
+}
+let locPermDenied = false;
+function persistNative(k, v) {
+  try {
+    if (typeof k !== 'string' || k.startsWith('cal:') || k.startsWith('landmark') || /base64/.test(k) || String(v).length > 4000) return;
+    if (!isNative()) return;
+    const pl = getPL();
+    if (pl) pl.saveSetting({key: k, value: String(v)}).catch(() => {});
+  } catch (e) {}
+}
+const store = {
+  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set(k,v){let ok=false;try{localStorage.setItem(k,v);ok=true}catch(e){}persistNative(k,v);return ok}
+};
+async function restoreFromNative() {
+  if (!isNative()) return;
+  try {
+    const pl = getPL();
+    if (!pl) return;
+    const all = await Promise.race([pl.getSettings(), new Promise((_, rej) => setTimeout(() => rej('timeout'), 2500))]);
+    Object.keys(all || {}).forEach(k => { try { localStorage.setItem(k, all[k]); } catch (e) {} });
+    if (!localStorage.getItem('migrated-v1')) {   // نقل الإعدادات القديمة مرة واحدة
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); persistNative(k, localStorage.getItem(k)); }
+      localStorage.setItem('migrated-v1', '1');
+    }
+  } catch (e) {}
+}
+const getVol = () => { const v = store.get('app-adhan-volume'); return v === null || v === '' || isNaN(+v) ? 100 : +v; };
+let userLat = 30.0444, userLng = 31.2357;
+let times = {}, loadedDay = '', lastSource = null;
+let timerInterval, hasPlayedWarning = false, warningKey = '', adhanFiredFor = '';
+const adhanAudio = new Audio();
+let audioUnlocked = false;
+
+// المتصفح يمنع الصوت قبل أي تفاعل، فنفتحه عند أول لمسة
+document.addEventListener('click', () => {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  if ('speechSynthesis' in window) speechSynthesis.getVoices();
+}, {once:true});
+
+function localDayKey(d = new Date()) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function to12h(str) {
+  const [h, m] = str.slice(0,5).split(':').map(Number);
+  return ((h % 12) || 12) + ':' + String(m).padStart(2,'0') + ' ' + (h < 12 ? 'ص' : 'م');
+}
+function parseTime(str, base = new Date()) {
+  const [h, m] = str.slice(0,5).split(':').map(Number);
+  return new Date(base.getFullYear(), base.getMonth(), base.getDate(), h, m, 0);
+}
+
+function markSwatch(t) { document.querySelectorAll('.sw').forEach(el => el.classList.toggle('on', el.dataset.t === t)); }
+function changeTheme() {
+  const t = document.getElementById('theme-selector').value;
+  document.documentElement.setAttribute('data-theme', t);
+  store.set('app-theme', t);
+  markSwatch(t);
+}
+document.querySelectorAll('.sw').forEach(el => { el.onclick = () => { document.getElementById('theme-selector').value = el.dataset.t; changeTheme(); }; });
+function saveAdhan() {
+  const a = document.getElementById('adhan-selector').value;
+  store.set('app-adhan', a);
+  document.getElementById('custom-upload-section').style.display = a === 'custom' ? 'block' : 'none';
+  if (a === 'custom') checkCustomFileStatus();
+  scheduleNative();
+}
+function checkCustomFileStatus() {
+  const el = document.getElementById('custom-file-status');
+  if (store.get('app-adhan-custom-base64') || store.get('app-adhan-custom-ok')) { el.textContent = '(تم حفظ الملف بنجاح ✔️)'; el.style.color = '#4ade80'; }
+  else { el.textContent = '(لم يتم اختيار ملف بعد)'; el.style.color = 'var(--text-muted)'; }
+}
+let customAdhanData = null;
+function handleCustomAdhanUpload(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (f.size > 8*1024*1024) { alert('حجم الملف كبير جداً! اختر ملفاً أصغر من 8 ميجابايت.'); return; }
+  const r = new FileReader();
+  r.onload = async ev => {
+    customAdhanData = ev.target.result;
+    let ok = store.set('app-adhan-custom-base64', customAdhanData);
+    if (isNative()) {
+      try { await getPL().saveAdhan({data: customAdhanData}); store.set('app-adhan-custom-ok', '1'); ok = true; }
+      catch (er) { alert('تعذر حفظ الملف: ' + er); return; }
+    }
+    if (ok) { checkCustomFileStatus(); scheduleNative(); alert('تم حفظ ملف الأذان بنجاح!'); }
+    else alert('تعذر حفظ الملف، المساحة التخزينية غير كافية.');
+  };
+  r.readAsDataURL(f);
+}
+const REMINDER_URLS = {chime: 'reminder_chime.wav', beep: 'reminder_beep.wav'};
+let customReminderData = null;
+function checkReminderFile() {
+  const el = document.getElementById('reminder-file-status');
+  if (store.get('app-reminder-ok') || store.get('app-reminder-custom-base64')) { el.textContent = '(تم حفظ الملف بنجاح ✔️)'; el.style.color = '#4ade80'; }
+  else { el.textContent = '(لم يتم اختيار ملف بعد)'; el.style.color = 'var(--text-muted)'; }
+}
+function saveReminder() {
+  const v = document.getElementById('reminder-selector').value;
+  store.set('app-reminder', v);
+  document.getElementById('reminder-custom-section').style.display = v === 'custom' ? 'block' : 'none';
+  if (v === 'custom') checkReminderFile();
+  scheduleNative();
+}
+function handleReminderUpload(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (f.size > 3*1024*1024) { alert('حجم الملف كبير! اختر ملفاً قصيراً أقل من 3 ميجابايت.'); return; }
+  const r = new FileReader();
+  r.onload = async ev => {
+    customReminderData = ev.target.result;
+    let ok = store.set('app-reminder-custom-base64', customReminderData);
+    if (isNative()) {
+      try { await getPL().saveReminderSound({data: customReminderData}); store.set('app-reminder-ok', '1'); ok = true; }
+      catch (er) { alert('تعذر حفظ الملف: ' + er); return; }
+    }
+    if (ok) { checkReminderFile(); scheduleNative(); alert('تم حفظ الصوت بنجاح!'); } else alert('تعذر حفظ الملف.');
+  };
+  r.readAsDataURL(f);
+}
+function previewReminder() {
+  const v = document.getElementById('reminder-selector').value;
+  stopAdhanAll();
+  if (v === 'none') { alert('تم اختيار: بدون صوت.'); return; }
+  if (v === 'default' || v === 'alarm') {
+    if (isNative()) getPL().playSystem({kind: v}).catch(() => {}); else alert('معاينة نغمات الهاتف متاحة داخل التطبيق فقط.');
+    return;
+  }
+  const src = v === 'custom' ? (customReminderData || store.get('app-reminder-custom-base64')) : REMINDER_URLS[v];
+  if (!src) { alert('اختر ملفاً صوتياً أولاً.'); return; }
+  previewing = true;
+  adhanAudio.src = src;
+  adhanAudio.play().catch(() => alert('تعذر تشغيل الصوت.'));
+  previewTimer = setTimeout(stopAdhanAll, 8000);
+}
+function applyVolumeUI(v) {
+  document.getElementById('vol-val').textContent = v + '%';
+  const el = document.getElementById('adhan-volume');
+  el.value = v;
+  el.style.background = `linear-gradient(to left, var(--primary) ${v}%, #333 ${v}%)`;
+  adhanAudio.volume = v / 100;
+}
+function setAdhanVolume(v) {
+  v = +v;
+  store.set('app-adhan-volume', String(v));
+  applyVolumeUI(v);
+  scheduleNative();
+}
+async function refreshOverlayStatus() {
+  const el = document.getElementById('overlay-status');
+  if (!el) return;
+  if (!isNative()) { el.textContent = 'متاح داخل تطبيق أندرويد فقط'; return; }
+  try {
+    const r = await getPL().overlayState();
+    el.textContent = r.granted ? '✅ مفعّل: ستظهر شاشة الأذان فوق التطبيقات' : '⚠️ غير مفعّل بعد، اضغط الزر ثم فعّل الخيار';
+    el.style.color = r.granted ? '#4ade80' : '#f59e0b';
+  } catch (e) { el.textContent = ''; }
+}
+async function openOverlaySettings() {
+  if (!isNative()) { alert('هذا الخيار متاح داخل تطبيق أندرويد فقط.'); return; }
+  try { await getPL().openOverlaySettings(); } catch (e) { alert('تعذر فتح الإعدادات: ' + ((e && e.message) || e)); }
+}
+async function openFullScreenSettings() {
+  if (!isNative()) { alert('هذا الخيار متاح داخل تطبيق أندرويد فقط.'); return; }
+  try { await getPL().openFullScreenSettings(); } catch (e) { alert('تعذر فتح الإعدادات: ' + ((e && e.message) || e)); }
+}
+let adhanShownByService = false, adhanPoll = null;
+function startAdhanPoll() {
+  if (!isNative() || adhanPoll) return;
+  adhanPoll = setInterval(async () => {
+    try {
+      const st = await getPL().adhanState();
+      const ov = document.getElementById('adhan-modal-overlay');
+      const open = ov.classList.contains('show');
+      if (st && st.playing && !open) { adhanShownByService = true; showAdhanModal(st.name ? 'صلاة ' + st.name : 'الصلاة'); }
+      else if (st && !st.playing && open && adhanShownByService) { ov.classList.remove('show'); adhanShownByService = false; }
+    } catch (e) {}
+  }, 1000);
+}
+function showAdhanModal(title) {
+  const modal = document.getElementById('adhan-modal-overlay');
+  const nameEl = document.getElementById('adhan-modal-prayer-name');
+  if (nameEl) nameEl.textContent = title || 'الصلاة';
+  if (modal) modal.classList.add('show');
+}
+
+function closeAdhanModal() {
+  const modal = document.getElementById('adhan-modal-overlay');
+  if (modal) modal.classList.remove('show');
+  try { adhanAudio.pause(); adhanAudio.currentTime = 0; } catch (e) {}
+  clearTimeout(previewTimer);
+  previewing = false;
+  if (isNative()) { try { getPL().stopAdhan().catch(() => {}); } catch (e) {} }
+}
+
+function stopAdhanAll() {
+  closeAdhanModal();
+}
+
+function adhanSource() {
+  const a = document.getElementById('adhan-selector').value;
+  if (a === 'custom') return customAdhanData || store.get('app-adhan-custom-base64');
+  return ADHAN_URLS[a] || ADHAN_URLS.abdulbasit;
+}
+
+let previewTimer, previewing = false;
+function previewAdhan() {
+  if (isNative()) {
+    const modalOpen = document.getElementById('adhan-modal-overlay').classList.contains('show');
+    if (modalOpen) { closeAdhanModal(); return; }
+    const a = document.getElementById('adhan-selector').value;
+    if (a === 'custom' && !store.get('app-adhan-custom-ok')) { alert('الرجاء اختيار ملف صوتي من الجهاز أولاً.'); return; }
+    const pl = getPL();
+    pl.playAdhanNow({adhan: a, volume: getVol(), name: 'تجربة'})
+      .then(() => { previewing = true; adhanShownByService = true; showAdhanModal('أذان تجريبي'); })
+      .catch(e => alert('تعذر تشغيل الصوت: ' + ((e && e.message) || e)));
+    previewTimer = setTimeout(closeAdhanModal, 25000);
+    return;
+  }
+  if (!adhanAudio.paused) { closeAdhanModal(); return; }
+  const src = adhanSource();
+  if (!src) { alert('الرجاء اختيار ملف صوتي من الجهاز أولاً.'); return; }
+  previewing = true;
+  adhanAudio.src = src;
+  adhanAudio.play().then(() => {
+    showAdhanModal('أذان تجريبي');
+  }).catch(() => alert('تعذر تشغيل الصوت. تأكد من صحة الملف.'));
+  previewTimer = setTimeout(closeAdhanModal, 15000);
+}
+
+function playAdhanNow(prayerKey) {
+  const src = adhanSource();
+  if (!src) return;
+  previewing = false;
+  adhanAudio.src = src;
+  adhanAudio.play().then(() => {
+    const pName = (prayerKey && NAMES_AR[prayerKey]) ? `صلاة ${NAMES_AR[prayerKey]}` : 'الصلاة';
+    showAdhanModal(pName);
+  }).catch(() => {});
+}
+
+adhanAudio.onended = () => {
+  closeAdhanModal();
+};
+
+function updateLocationBackground(tz) {
+  if (!tz) return;
+  let url = 'https://images.unsplash.com/photo-1584286595398-a59f21d313f5?auto=format&fit=crop&q=80&w=800';
+  if (/Cairo|Egypt/.test(tz)) url = 'https://images.unsplash.com/photo-1531604250646-2f0e818c4f06?auto=format&fit=crop&q=80&w=800';
+  else if (/Riyadh|Mecca|Saudi/.test(tz)) url = 'https://images.unsplash.com/photo-1565552643983-665ab2790930?auto=format&fit=crop&q=80&w=800';
+  document.getElementById('location-bg').style.backgroundImage = `url('${url}')`;
+}
+
+// يبحث في ويكيبيديا العربية عن أقرب مسجد/معلم إسلامي له صورة حول إحداثيات الموقع
+function setBackground(url) {
+  const img = new Image();
+  img.onload = () => {
+    document.getElementById('location-bg').style.backgroundImage = `url("${url}")`;
+  };
+  img.src = url;
+}
+async function findMosqueImage(lang, lat, lng, re) {
+  const base = `https://${lang}.wikipedia.org/w/api.php?format=json&origin=*&action=query`;
+  // 1) كل الصفحات القريبة (حتى 500) ثم نختار المساجد فقط
+  const g = await (await fetch(`${base}&list=geosearch&gscoord=${lat}|${lng}&gsradius=10000&gslimit=500`)).json();
+  const titles = ((g.query && g.query.geosearch) || []).filter(x => re.test(x.title)).slice(0, 15).map(x => x.title);
+  if (!titles.length) return null;
+  // 2) نجلب صورها ونختار الأقرب الذي له صورة
+  const q = await (await fetch(`${base}&prop=pageimages&piprop=thumbnail&pithumbsize=1280&titles=${encodeURIComponent(titles.join('|'))}`)).json();
+  const pages = (q.query && q.query.pages) || {};
+  for (const t of titles) {
+    const pg = Object.values(pages).find(p => p.title === t && p.thumbnail);
+    if (pg) { lastMosqueTitle = t; return pg.thumbnail.source; }
+  }
+  return null;
+}
+const CITY_LANDMARKS = {damascus:'Umayyad Mosque', kairouan:'Great Mosque of Kairouan', islamabad:'Faisal Mosque', lahore:'Badshahi Mosque', delhi:'Jama Masjid, Delhi', jakarta:'Istiqlal Mosque, Jakarta', marrakesh:'Kutubiyya Mosque', muscat:'Sultan Qaboos Grand Mosque', amman:'King Abdullah I Mosque', baghdad:'Al-Kadhimiya Mosque', tunis:'Zitouna Mosque', dhaka:'Baitul Mukarram National Mosque', 'kuala lumpur':'National Mosque of Malaysia', kuwait:'Grand Mosque (Kuwait)', doha:'Imam Muhammad ibn Abd al-Wahhab Mosque', luxor:'Abu Haggag Mosque', mecca:'Masjid al-Haram', makkah:'Masjid al-Haram', medina:"Al-Masjid an-Nabawi", madinah:"Al-Masjid an-Nabawi", jerusalem:'Al-Aqsa Mosque', istanbul:'Sultan Ahmed Mosque', casablanca:'Hassan II Mosque', 'abu dhabi':'Sheikh Zayed Grand Mosque', cairo:'Muhammad Ali Mosque', alexandria:'Abu al-Abbas al-Mursi Mosque', tanta:'Al-Sayyid al-Badawi Mosque'};
+const TZ_LANDMARKS = {'Africa/Cairo':'Muhammad Ali Mosque','Asia/Riyadh':'Masjid al-Haram','Europe/Istanbul':'Sultan Ahmed Mosque','Asia/Dubai':'Sheikh Zayed Grand Mosque','Africa/Casablanca':'Hassan II Mosque','Asia/Jakarta':'Istiqlal Mosque, Jakarta','Asia/Karachi':'Badshahi Mosque','Asia/Kuala_Lumpur':'National Mosque of Malaysia','Asia/Kuwait':'Grand Mosque (Kuwait)','Asia/Amman':'King Abdullah I Mosque','Asia/Baghdad':'Al-Kadhimiya Mosque','Asia/Muscat':'Sultan Qaboos Grand Mosque','Africa/Tunis':'Zitouna Mosque','Asia/Dhaka':'Baitul Mukarram','Asia/Kolkata':'Jama Masjid, Delhi'};
+let lastMosqueTitle = '';
+async function imageForSearch(q) {
+  const u = 'https://en.wikipedia.org/w/api.php?format=json&origin=*&action=query&generator=search&gsrlimit=8&prop=pageimages&piprop=thumbnail&pithumbsize=1280&gsrsearch=' + encodeURIComponent(q);
+  const d = await (await fetch(u)).json();
+  const pg = Object.values((d.query && d.query.pages) || {}).filter(p => p.thumbnail && /mosque|masjid/i.test(p.title)).sort((a, b) => a.index - b.index)[0];
+  return pg ? [pg.thumbnail.source, pg.title] : [null, ''];
+}
+async function imageForTitle(title) {
+  const u = 'https://en.wikipedia.org/w/api.php?format=json&origin=*&action=query&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1280&titles=' + encodeURIComponent(title);
+  const d = await (await fetch(u)).json();
+  const pg = Object.values((d.query && d.query.pages) || {}).find(p => p.thumbnail);
+  return pg ? pg.thumbnail.source : null;
+}
+function loadImage(url) {
+  return new Promise(res => { const i = new Image(); i.onload = () => res(true); i.onerror = () => res(false); i.src = url; });
+}
+async function applyLandmark(url, name) {
+  if (!url || !(await loadImage(url))) return false;
+  document.getElementById('location-bg').style.backgroundImage = `url("${url}")`;
+  document.getElementById('landmark-name').textContent = name || '';
+  return true;
+}
+let landmarkRun = 0;
+async function updateLandmark(lat, lng, tz) {
+  const run = ++landmarkRun;
+  const cap = document.getElementById('landmark-name');
+  const city = (lastSource && lastSource.type === 'city') ? lastSource.city.toLowerCase() : '';
+  const tries = [];
+  if (CITY_LANDMARKS[city]) tries.push(() => imageForTitle(CITY_LANDMARKS[city]).then(u => [u, CITY_LANDMARKS[city]]));
+  tries.push(async () => { const u = await findMosqueImage('ar', lat, lng, /مسجد|جامع|الحرم|ضريح/); return [u, lastMosqueTitle]; });
+  tries.push(async () => { const u = await findMosqueImage('en', lat, lng, /mosque|masjid|jama|mausoleum/i); return [u, lastMosqueTitle]; });
+  if (lastSource && lastSource.type === 'city') tries.push(() => imageForSearch(lastSource.city + ' ' + lastSource.country + ' mosque'));
+  if (TZ_LANDMARKS[tz]) tries.push(() => imageForTitle(TZ_LANDMARKS[tz]).then(u => [u, TZ_LANDMARKS[tz]]));
+  for (const t of tries) {
+    try {
+      const [url, name] = await t();
+      if (run !== landmarkRun) return;
+      if (await applyLandmark(url, name)) return;
+    } catch (e) { console.error('landmark', e); }
+  }
+  cap.textContent = navigator.onLine ? '(تعذر جلب صورة المعلم)' : '';
+  updateLocationBackground(tz);
+}
+
+// ===== جلب وعرض حالة الطقس الحالية للموقع =====
+let currentWeatherDetails = null;
+
+function getWeatherInfo(code, isDay) {
+  switch (code) {
+    case 0:
+      return isDay ? { icon: '☀️', desc: 'صافٍ' } : { icon: '🌙', desc: 'سماء صافية' };
+    case 1:
+      return isDay ? { icon: '🌤️', desc: 'صحو غالباً' } : { icon: '🌕', desc: 'صافٍ تقريباً' };
+    case 2:
+      return isDay ? { icon: '⛅', desc: 'غائم جزئياً' } : { icon: '☁️', desc: 'غائم جزئياً' };
+    case 3:
+      return { icon: '☁️', desc: 'غائم كلياً' };
+    case 45:
+    case 48:
+      return { icon: '🌫️', desc: 'ضباب' };
+    case 51:
+    case 53:
+    case 55:
+      return { icon: '🌦️', desc: 'رذاذ خفيف' };
+    case 61:
+      return { icon: '🌧️', desc: 'أمطار خفيفة' };
+    case 63:
+      return { icon: '🌧️', desc: 'أمطار معتدلة' };
+    case 65:
+      return { icon: '🌧️', desc: 'أمطار غزيرة' };
+    case 71:
+    case 73:
+    case 75:
+      return { icon: '🌨️', desc: 'تساقط ثلوج' };
+    case 77:
+      return { icon: '🌨️', desc: 'حبيبات ثلج' };
+    case 80:
+    case 81:
+    case 82:
+      return { icon: '🌦️', desc: 'زخات مطر' };
+    case 85:
+    case 86:
+      return { icon: '🌨️', desc: 'عاصفة ثلجية' };
+    case 95:
+      return { icon: '⛈️', desc: 'عواصف رعدية' };
+    case 96:
+    case 99:
+      return { icon: '⛈️', desc: 'رعد وبرد' };
+    default:
+      return isDay ? { icon: '🌤️', desc: 'معتدل' } : { icon: '🌙', desc: 'معتدل' };
+  }
+}
+
+async function updateWeather(lat, lng) {
+  if (!lat || !lng) return;
+  const badge = document.getElementById('loc-weather-badge');
+  const iconEl = document.getElementById('weather-icon');
+  const tempEl = document.getElementById('weather-temp');
+  const descEl = document.getElementById('weather-desc');
+  if (!badge) return;
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${(+lat).toFixed(4)}&longitude=${(+lng).toFixed(4)}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m&timezone=auto`;
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.json();
+    const curr = data?.current;
+    if (!curr) return;
+
+    currentWeatherDetails = curr;
+    const temp = Math.round(curr.temperature_2m);
+    const info = getWeatherInfo(curr.weather_code, curr.is_day === 1);
+
+    if (iconEl) iconEl.textContent = info.icon;
+    if (tempEl) tempEl.textContent = `${temp}°م`;
+    if (descEl) descEl.textContent = info.desc;
+    badge.style.display = 'inline-flex';
+  } catch (err) {
+    console.warn('Weather update error', err);
+  }
+}
+
+function showWeatherDetails() {
+  if (!currentWeatherDetails) {
+    alert('جاري تحديث بيانات الطقس لموقعك...');
+    return;
+  }
+  const temp = Math.round(currentWeatherDetails.temperature_2m);
+  const feelsLike = Math.round(currentWeatherDetails.apparent_temperature ?? temp);
+  const humidity = currentWeatherDetails.relative_humidity_2m;
+  const wind = Math.round(currentWeatherDetails.wind_speed_10m);
+  const desc = document.getElementById('weather-desc')?.textContent || 'الطقس';
+  const icon = document.getElementById('weather-icon')?.textContent || '🌤️';
+  alert(`${icon} الطقس: ${desc} (${temp}°م) | المحسوسة: ${feelsLike}°م | الرطوبة: ${humidity}% | الرياح: ${wind} كم/س`);
+}
+
+function switchTab(id, el, title) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('header-title').textContent = title;
+  if (id === 'qibla') initQibla();
+}
+
+// تطبيق بيانات المواقيت (مشترك بين المدينة و GPS)
+function srcKey(s) { return s.type === 'city' ? 'c|' + s.city.toLowerCase() + '|' + s.country.toLowerCase() : 'g|' + (+s.lat).toFixed(2) + '|' + (+s.lng).toFixed(2); }
+function srcCoords(s) {
+  if (s.type === 'gps') return [+s.lat, +s.lng];
+  const c = store.get('coords-' + srcKey(s));
+  return c ? c.split(',').map(Number) : null;
+}
+function calUrl(s, y, m) {
+  return s.type === 'city'
+    ? `https://api.aladhan.com/v1/calendarByCity/${y}/${m}?city=${encodeURIComponent(s.city)}&country=${encodeURIComponent(s.country)}&method=5`
+    : `https://api.aladhan.com/v1/calendar/${y}/${m}?latitude=${s.lat}&longitude=${s.lng}&method=5`;
+}
+// تقويم الشهر: من الذاكرة أولاً (يعمل بدون إنترنت)، ومن الإنترنت عند الحاجة فقط
+async function getCal(s, y, m) {
+  const k = 'cal:' + srcKey(s) + ':' + y + '-' + m;
+  try { const c = JSON.parse(store.get(k)); if (c) return c; } catch (e) {}
+  try {
+    const j = await (await fetch(calUrl(s, y, m))).json();
+    if (j && Array.isArray(j.data)) { store.set(k, JSON.stringify(j.data)); return j.data; }
+  } catch (e) {}
+  return null;
+}
+// حساب المواقيت محلياً (الهيئة المصرية: فجر 19.5 وعشاء 17.5) عند غياب الإنترنت والتخزين
+function offlineTimes(lat, lng, d) {
+  const rad = x => x * Math.PI / 180, deg = x => x * 180 / Math.PI;
+  const tz = -d.getTimezoneOffset() / 60;
+  const n = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12) / 86400000 + 2440587.5 - 2451545.0;
+  const L = (280.460 + 0.9856474 * n) % 360, g = rad((357.528 + 0.9856003 * n) % 360);
+  const lam = rad(L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)), eps = rad(23.439 - 0.0000004 * n);
+  const decl = Math.asin(Math.sin(eps) * Math.sin(lam));
+  const ra = (deg(Math.atan2(Math.cos(eps) * Math.sin(lam), Math.cos(lam))) / 15 + 24) % 24;
+  let eqt = (L + 360) % 360 / 15 - ra; if (eqt > 12) eqt -= 24; if (eqt < -12) eqt += 24;
+  const noon = 12 + tz - lng / 15 - eqt, la = rad(lat);
+  const H = a => deg(Math.acos((Math.sin(a) - Math.sin(la) * Math.sin(decl)) / (Math.cos(la) * Math.cos(decl)))) / 15;
+  const asrAlt = Math.atan(1 / (1 + Math.tan(Math.abs(la - decl))));
+  const raw = {Fajr: noon - H(rad(-19.5)), Sunrise: noon - H(rad(-0.833)), Dhuhr: noon + 1/60, Asr: noon + H(asrAlt), Maghrib: noon + H(rad(-0.833)), Isha: noon + H(rad(-17.5))};
+  const out = {};
+  for (const k in raw) {
+    if (isNaN(raw[k])) return null;
+    const m = Math.round((((raw[k] % 24) + 24) % 24) * 60);
+    out[k] = String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+  }
+  return out;
+}
+function hijriOffline(d) {
+  try { return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {day: 'numeric', month: 'long', year: 'numeric'}).format(d); } catch (e) { return ''; }
+}
+async function dayEntry(s, d) {
+  const arr = await getCal(s, d.getFullYear(), d.getMonth() + 1);
+  const e = arr && arr.find(x => +x.date.gregorian.day === d.getDate());
+  if (e) return e;
+  const c = srcCoords(s);
+  const t = c && offlineTimes(c[0], c[1], d);
+  if (!t) return null;
+  return {timings: t, date: {hijri: null}, hijriText: hijriOffline(d), meta: {latitude: c[0], longitude: c[1], timezone: ''}};
+}
+function updateDateBar() {
+  const d = new Date();
+  document.getElementById('day-name').textContent = d.toLocaleDateString('ar-EG-u-nu-latn', {weekday: 'long'});
+  document.getElementById('greg-date').textContent = d.toLocaleDateString('ar-EG-u-nu-latn', {day: 'numeric', month: 'long', year: 'numeric'});
+}
+function applyTimings(data, label) {
+  const e = data.data, t = e.timings, now = new Date();
+  KEYS.forEach(p => { document.getElementById(p).textContent = to12h(t[p]); times[p] = parseTime(t[p], now); });
+  loadedDay = localDayKey(now);
+  const h = e.date && e.date.hijri;
+  document.getElementById('hijri-date').textContent = e.hijriText || (h ? `${h.day} ${h.month.ar} ${h.year} هـ` : '');
+  document.getElementById('display-location').textContent = label;
+  if (e.meta && e.meta.latitude) {
+    userLat = +e.meta.latitude; userLng = +e.meta.longitude;
+    if (lastSource && lastSource.type === 'city') store.set('coords-' + srcKey(lastSource), userLat + ',' + userLng);
+    updateLandmark(e.meta.latitude, e.meta.longitude, e.meta.timezone);
+  }
+  updateWeather(userLat, userLng);
+  updateDateBar();
+  startCountdown();
+  scheduleNative();
+  refreshQibla();
+}
+const CITY_AR = {Cairo: 'القاهرة', Buraydah: 'بريدة', Egypt: 'مصر', 'Saudi Arabia': 'السعودية'};
+async function fetchJsonTimeout(url, ms) {
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+  try { const r = await fetch(url, {signal: ctl.signal}); return await r.json(); } finally { clearTimeout(t); }
+}
+// اسم المدينة والدولة الحاليتين بالعربية (من الإحداثيات)، ويُحفظ للعمل بدون إنترنت
+async function placeLabel(lat, lng, fallback) {
+  const key = 'place2:' + (+lat).toFixed(2) + ',' + (+lng).toFixed(2);
+  const c = store.get(key);
+  if (c) return c;
+  try {
+    const d = await fetchJsonTimeout(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&addressdetails=1&accept-language=ar&lat=${lat}&lon=${lng}`, 5000);
+    const a = d.address || {};
+    const city = a.city || a.town || a.municipality || a.village || a.county || a.state_district || a.state || '';
+    const lbl = [city, a.country || ''].filter(Boolean).join('، ');
+    if (lbl) { store.set(key, lbl); return lbl; }
+  } catch (e) {}
+  try {
+    const d = await fetchJsonTimeout(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=ar`, 5000);
+    const lbl = [d.city || d.locality || d.principalSubdivision || '', d.countryName || ''].filter(Boolean).join('، ');
+    if (lbl) { store.set(key, lbl); return lbl; }
+  } catch (e) {}
+  return fallback;
+}
+async function renderSource(s, label) {
+  lastSource = s;
+  const e = await dayEntry(s, new Date());
+  if (!e) { document.getElementById('display-location').textContent = 'لا توجد بيانات، اتصل بالإنترنت مرة واحدة لهذا الموقع'; return; }
+  applyTimings({data: e}, label);
+  store.set('last-source', JSON.stringify({s, label}));
+  const n = new Date(); // تجهيز الشهر القادم للعمل بدون إنترنت
+  getCal(s, n.getMonth() === 11 ? n.getFullYear() + 1 : n.getFullYear(), n.getMonth() === 11 ? 1 : n.getMonth() + 2).catch(() => {});
+}
+async function fetchByCity(city, country) { await renderSource({type: 'city', city, country}, `${CITY_AR[city] || city}، ${CITY_AR[country] || country}`); }
+async function fetchByCoords(lat, lng, label, approx) { await renderSource({type: 'gps', lat, lng, approx: !!approx}, label); }
+function refetchToday() { if (lastSource) renderSource(lastSource, document.getElementById('display-location').textContent); }
+
+function startCountdown() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(updateCountdown, 1000);
+  updateCountdown();
+}
+
+function updateCountdown() {
+  if (!times.Fajr) return;
+  const now = new Date();
+  // تحديث المواقيت تلقائياً عند تغيّر اليوم
+  if (localDayKey(now) !== loadedDay) { loadedDay = localDayKey(now); refetchToday(); return; }
+
+  let idx = KEYS.findIndex(k => now < times[k]);
+  let nextKey, nextTime, prevTime;
+  if (idx === -1) { // بعد العشاء: فجر الغد تقريبياً، ويتحدّث بعد منتصف الليل
+    nextKey = 'Fajr';
+    nextTime = new Date(times.Fajr.getTime() + 86400000);
+    prevTime = times.Isha;
+  } else {
+    nextKey = KEYS[idx];
+    nextTime = times[nextKey];
+    prevTime = idx === 0 ? new Date(times.Isha.getTime() - 86400000) : times[KEYS[idx-1]];
+  }
+  document.getElementById('next-prayer-name').textContent = NAMES_AR[nextKey];
+
+  const diff = nextTime - now;
+  const h = Math.floor(diff/3600000), m = Math.floor(diff/60000) % 60, s = Math.floor(diff/1000) % 60;
+  const p2 = n => String(n).padStart(2,'0');
+  document.getElementById('countdown-timer').textContent = `${p2(h)}:${p2(m)}:${p2(s)}`;
+
+  const card = document.getElementById('next-prayer-card');
+  const key = localDayKey(now) + nextKey;
+  if (diff <= 15*60000 && diff > 0) {
+    document.title = `⏳ ${m}:${p2(s)} - اقتربت صلاة ${NAMES_AR[nextKey]}`;
+    card.classList.add('warning-active');
+    const mins = Math.ceil(diff/60000);
+    if (mins !== lastNotifMin) { lastNotifMin = mins; showCountdownNotif(NAMES_AR[nextKey], mins); }
+    if (!hasPlayedWarning || warningKey !== key) {
+      speak(`اقتربت صلاة ${NAMES_AR[nextKey]}`);
+      hasPlayedWarning = true; warningKey = key;
+    }
+  } else {
+    document.title = 'Prayer Times-Azan';
+    card.classList.remove('warning-active');
+    if (lastNotifMin !== -1) { lastNotifMin = -1; clearCountdownNotif(); }
+  }
+
+  // تشغيل الأذان عند دخول الوقت (إن فُعّل الخيار)، مرة واحدة لكل صلاة
+  if (idx !== -1 || true) {
+    KEYS.forEach(k => {
+      if (k === 'Sunrise') return;
+      const delta = now - times[k];
+      const id = localDayKey(now) + k;
+      if (delta >= 0 && delta < 5000 && adhanFiredFor !== id) {
+        adhanFiredFor = id;
+        if (store.get('auto-adhan') !== '0' && !isNative()) playAdhanNow(k);
+      }
+    });
+  }
+
+  document.getElementById('prayer-progress').style.strokeDashoffset = 157.08 * (1 - diff / (nextTime - prevTime));
+
+  KEYS.forEach(k => {
+    const el = document.getElementById('row-' + k);
+    if (el) el.classList.toggle('active-prayer', k === nextKey);
+  });
+}
+
+// ===== جدولة إشعارات أندرويد الأصلية (تعمل والتطبيق مغلق) =====
+const USE_ADHAN_SOUND = false;
+const isNative = () => !!(window.Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform());
+let schedTimer;
+function scheduleNative() { clearTimeout(schedTimer); schedTimer = setTimeout(doSchedule, 1500); }
+
+async function testNative() {
+  if (!isNative()) {
+    alert('هذا الاختبار مخصص لتطبيق أندرويد. في المتصفح يتم إطلاق التنبيهات مباشرة عند دخول الوقت.');
+    return;
+  }
+  const LN = window.Capacitor?.Plugins?.LocalNotifications;
+  if (!LN) { alert('مكوّن الإشعارات غير موجود في هذه النسخة من التطبيق. ارفع ملفات المشروع المحدّثة (مجلد native وملف build-apk.yml وpackage.json) وأعد البناء ثم ثبّت التطبيق من جديد.'); return; }
+  try {
+    const p = await permGate(() => LN.requestPermissions());
+    if (p.display !== 'granted') {
+      alert('إذن الإشعارات غير ممنوح. افتح إعدادات الهاتف ← التطبيقات ← Prayer Times-Azan ← الإشعارات وفعّلها.');
+      return;
+    }
+    await LN.createChannel({id: 'test2', name: 'اختبار', importance: 5, vibration: true});
+    await LN.schedule({notifications: [{
+      id: 999, title: 'اختبار الإشعار - Prayer Times-Azan', body: 'التنبيهات تعمل بنجاح',
+      channelId: 'test2', smallIcon: 'ic_stat_icon', schedule: {at: new Date(Date.now() + 10000), allowWhileIdle: true}
+    }]});
+    const pend = await LN.getPending();
+    alert('تمت جدولة الإشعار (' + pend.notifications.length + ' معلّق). سيصلك بعد 10 ثوانٍ.');
+  } catch (e) {
+    alert('تعذر إرسال الإشعار: ' + ((e && e.message) || e));
+  }
+}
+
+let liveError = '', hijriDays = [];
+let _pl = null;
+function getPL() {
+  if (_pl) return _pl;
+  try {
+    _pl = (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.PrayerLive) ||
+          (window.Capacitor && typeof Capacitor.registerPlugin === 'function' ? Capacitor.registerPlugin('PrayerLive') : null);
+  } catch (e) { _pl = null; }
+  return _pl;
+}
+
+async function startLiveService(all) {
+  const pl = getPL();
+  if (!pl || typeof pl.start !== 'function') return;
+  all.sort((a, b) => a.t - b.t);
+  try {
+    await pl.start({
+      items: all.slice(0, 35).map(x => ({name: NAMES_AR[x.k], at: x.t.getTime()})),
+      days: hijriDays,
+      place: document.getElementById('display-location')?.textContent || '',
+      auto: store.get('auto-adhan') !== '0',
+      reminder: store.get('app-reminder') || 'chime',
+      volume: getVol(),
+      adhan: document.getElementById('adhan-selector')?.value || 'mishary'
+    });
+    liveError = '';
+  } catch (e) {
+    liveError = String((e && e.message) || e);
+    console.warn('PrayerLive start failed:', e);
+  }
+}
+
+async function doSchedule() {
+  if (!isNative() || !lastSource) return;
+  const LN = window.Capacitor?.Plugins?.LocalNotifications;
+  if (!LN || typeof LN.schedule !== 'function') return;
+  try {
+    let perm = null;
+    if (typeof LN.checkPermissions === 'function') {
+      perm = await LN.checkPermissions();
+    }
+    if (perm && perm.display !== 'granted' && typeof LN.requestPermissions === 'function') {
+      perm = await permGate(() => LN.requestPermissions());
+    }
+    if (perm && perm.display !== 'granted') return;
+
+    if (typeof LN.requestExactAlarmPermission === 'function') {
+      try { await LN.requestExactAlarmPermission(); } catch (e) {}
+    }
+
+    if (typeof LN.getPending === 'function' && typeof LN.cancel === 'function') {
+      const pend = await LN.getPending();
+      if (pend && Array.isArray(pend.notifications) && pend.notifications.length > 0) {
+        await LN.cancel({notifications: pend.notifications});
+      }
+    }
+
+    if (typeof LN.createChannel === 'function') {
+      await LN.createChannel({id:'reminder-silent', name:'تنبيه قبل الصلاة', importance:2});
+      await LN.createChannel({id:'adhan', name:'وقت الصلاة', importance:2});
+    }
+
+    const now = new Date(), items = [], all = [];
+    hijriDays = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      const e = await dayEntry(lastSource, d);
+      if (!e || !e.timings) continue;
+      const hj = e.hijriText || (e.date && e.date.hijri ? `${+e.date.hijri.day} ${e.date.hijri.month?.ar || ''} ${e.date.hijri.year || ''} هـ` : '');
+      hijriDays.push({key: localDayKey(d), hijri: hj});
+      KEYS.forEach(k => {
+        if (!e.timings[k]) return;
+        const [hh, mm] = e.timings[k].slice(0, 5).split(':').map(Number);
+        const t = new Date(d.getFullYear(), d.getMonth(), d.getDate(), hh, mm, 0);
+        if (t > now) { all.push({k, t}); if (k !== 'Sunrise') items.push({k, t}); }
+      });
+    }
+
+    const list = []; let id = 1;
+    items.forEach(({k, t}) => {
+      const warn = new Date(t.getTime() - 15*60000);
+      if (warn > now) list.push({id: id++, title: `اقتربت صلاة ${NAMES_AR[k]}`, body: 'باقي 15 دقيقة', channelId: 'reminder-silent', smallIcon: 'ic_stat_icon', schedule: {at: warn, allowWhileIdle: true}});
+      list.push({id: id++, title: `حان وقت صلاة ${NAMES_AR[k]}`, body: 'حيّ على الصلاة', channelId: USE_ADHAN_SOUND ? 'adhan-sound' : 'adhan', smallIcon: 'ic_stat_icon', schedule: {at: t, allowWhileIdle: true}});
+    });
+
+    if (list.length && typeof LN.schedule === 'function') {
+      await LN.schedule({notifications: list.slice(0, 60)});
+    }
+    await startLiveService(all);
+  } catch (e) {
+    console.error('doSchedule error:', e);
+  }
+}
+
+// ===== إشعار شريط الحالة والعد التنازلي =====
+let lastNotifMin = -1, swReg = null;
+function makeBadge(n) {
+  const c = document.createElement('canvas'); c.width = c.height = 96;
+  const x = c.getContext('2d');
+  if (!x) return '';
+  x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.font = 'bold 72px sans-serif'; x.fillText(String(n), 48, 52);
+  return c.toDataURL('image/png');
+}
+
+async function getReg() {
+  if (swReg) return swReg;
+  try {
+    return (navigator.serviceWorker && await navigator.serviceWorker.getRegistration()) || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function showCountdownNotif(name, mins) {
+  try { if (navigator.setAppBadge) navigator.setAppBadge(mins); } catch (e) {}
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const icon = makeBadge(mins);
+    const title = `اقتربت صلاة ${name}`;
+    const opts = {body: `باقي ${mins} دقيقة`, tag: 'prayer-countdown', renotify: false, silent: true, icon, badge: icon};
+    const reg = await getReg();
+    if (reg && typeof reg.showNotification === 'function') {
+      await reg.showNotification(title, opts);
+    } else if (typeof window.Notification === 'function') {
+      new Notification(title, opts);
+    }
+  } catch (e) {
+    console.warn('Countdown notification error:', e);
+  }
+}
+
+async function clearCountdownNotif() {
+  try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) {}
+  try {
+    const reg = await getReg();
+    if (reg && typeof reg.getNotifications === 'function') {
+      const active = await reg.getNotifications({tag: 'prayer-countdown'});
+      if (Array.isArray(active)) {
+        active.forEach(n => { if (n && typeof n.close === 'function') n.close(); });
+      }
+    }
+  } catch (e) {}
+}
+
+async function requestNotif() {
+  if (isNative()) {
+    const LN = window.Capacitor?.Plugins?.LocalNotifications;
+    if (!LN) { alert('مكوّن الإشعارات غير موجود في هذه النسخة من التطبيق. ارفع ملفات المشروع المحدّثة (مجلد native وملف build-apk.yml وpackage.json) وأعد البناء ثم ثبّت التطبيق من جديد.'); return; }
+    try {
+      const p = await permGate(() => LN.requestPermissions());
+      if (p.display !== 'granted') {
+        alert('يرجى تفعيل إذن الإشعارات: الإعدادات ← التطبيقات ← Prayer Times-Azan ← الإشعارات.');
+        return;
+      }
+      liveError = '';
+      if (!lastSource) { alert('لم يتم تحديد الموقع بعد، انتظر ثوانٍ ثم أعد المحاولة.'); return; }
+      await doSchedule();
+      alert(liveError ? 'تعذر تشغيل خدمة الإشعار الدائم: ' + liveError : 'تم التفعيل. يجب أن يظهر الإشعار الدائم في شريط الحالة الآن.');
+    } catch (e) {
+      alert('تعذر التفعيل: ' + ((e && e.message) || e));
+    }
+    return;
+  }
+  try {
+    if ('Notification' in window) {
+      const r = await Notification.requestPermission();
+      if (r === 'granted') {
+        alert('تم تفعيل إشعار العد التنازلي بنجاح.');
+        showCountdownNotif(document.getElementById('next-prayer-name')?.textContent || 'القادمة', 15);
+      } else alert('لم يتم منح إذن الإشعارات في المتصفح.');
+      return;
+    }
+    alert('المتصفح لا يدعم الإشعارات.');
+  } catch (e) { alert('تعذر التفعيل: ' + ((e && e.message) || e)); }
+}
+
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  navigator.serviceWorker.register('sw.js').then(r => swReg = r).catch(() => {});
+}
+
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ar-SA'; u.rate = 0.85; u.pitch = 0.9;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+function saveManualLocation() {
+  const city = document.getElementById('manual-city')?.value.trim();
+  const country = document.getElementById('manual-country')?.value.trim();
+  if (!city || !country) { alert('أدخل المدينة والدولة.'); return; }
+  store.set('userCity', city); store.set('userCountry', country);
+  store.set('auto-location', '0'); const alc = document.getElementById('auto-location'); if (alc) alc.checked = false;
+  fetchByCity(city, country);
+  switchTab('timings', document.querySelectorAll('.nav-item')[0], 'مواقيت الصلاة');
+}
+
+// تحديد الموقع التقريبي عبر عنوان الشبكة (IP) كحل بديل فوري
+async function getApproximateLocationByIP() {
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.latitude && data.longitude) {
+        return {
+          lat: +data.latitude,
+          lng: +data.longitude,
+          label: (data.city ? data.city + ' - ' : '') + (data.country_name || 'الشبكة')
+        };
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const res2 = await fetch('https://ipwho.is/');
+    if (res2.ok) {
+      const data2 = await res2.json();
+      if (data2 && data2.latitude && data2.longitude) {
+        return {
+          lat: +data2.latitude,
+          lng: +data2.longitude,
+          label: (data2.city ? data2.city + ' - ' : '') + (data2.country || 'الشبكة')
+        };
+      }
+    }
+  } catch (e2) {}
+
+  return null;
+}
+
+async function openAppSettings() {
+  try { await getPL().openAppSettings(); } catch (e) { alert('افتح: إعدادات الهاتف ← التطبيقات ← Prayer Times-Azan ← الأذونات ← الموقع'); }
+}
+async function locationPermState() {
+  const G = window.Capacitor?.Plugins?.Geolocation;
+  if (!G) return 'missing';
+  try {
+    const p = await G.checkPermissions();
+    if (p.location === 'granted') return 'precise';
+    if (p.coarseLocation === 'granted') return 'coarse';
+    return 'denied';
+  } catch (e) { return 'unknown'; }
+}
+async function refreshLocPerm() {
+  const el = document.getElementById('loc-perm-status');
+  if (!el) return;
+  if (!isNative()) { el.textContent = 'إذن الموقع يُدار من المتصفح'; return; }
+  const st = await locationPermState();
+  const map = {
+    precise: ['✅ إذن الموقع الدقيق مفعّل', '#4ade80'],
+    coarse: ['⚠️ الموقع تقريبي فقط. افتح إعدادات الإذن واختر "الموقع الدقيق"', '#f59e0b'],
+    denied: ['❌ إذن الموقع غير مفعّل. اضغط "طلب إذن الموقع"', '#ef4444'],
+    missing: ['❌ مكوّن الموقع غير موجود في هذه النسخة. أعد بناء التطبيق بالملفات الجديدة', '#ef4444'],
+    unknown: ['', '#a8a29e']
+  };
+  el.textContent = map[st][0];
+  el.style.color = map[st][1];
+}
+async function requestLocationPermission() {
+  if (!isNative()) { alert('هذا الخيار لتطبيق أندرويد.'); return; }
+  const G = window.Capacitor?.Plugins?.Geolocation;
+  if (!G) { alert('مكوّن الموقع غير موجود في هذه النسخة. أعد بناء التطبيق بالملفات الجديدة ثم ثبّته.'); return; }
+  try { await permGate(() => G.requestPermissions()); } catch (e) {}
+  await refreshLocPerm();
+  const st = await locationPermState();
+  if (st === 'denied' || st === 'coarse') {
+    if (confirm('لم يتم منح إذن الموقع الدقيق. هل تريد فتح إعدادات التطبيق لتفعيله؟\nالأذونات ← الموقع ← السماح أثناء استخدام التطبيق + الموقع الدقيق')) openAppSettings();
+  } else if (st === 'precise') {
+    getLocationByGPS();
+  }
+}
+function offerOpenSettings() {
+  if (!isNative() || !locPermDenied) return;
+  if (confirm('إذن الموقع غير مفعّل للتطبيق، لذلك يكون الموقع تقريبياً. هل تريد فتح إعدادات التطبيق لتفعيله؟\nالأذونات ← الموقع ← السماح أثناء استخدام التطبيق + الموقع الدقيق')) openAppSettings();
+}
+async function getPosition() {
+  // 1. فحص ملحق Capacitor في تطبيق أندرويد
+  if (isNative() && window.Capacitor?.Plugins?.Geolocation) {
+    const G = window.Capacitor.Plugins.Geolocation;
+    try {
+      let p = typeof G.checkPermissions === 'function' ? await G.checkPermissions() : null;
+      if (!p || (p.location !== 'granted' && p.coarseLocation !== 'granted')) {
+        if (typeof G.requestPermissions === 'function') {
+          p = await permGate(() => G.requestPermissions());
+        }
+      }
+      locPermDenied = !(p && (p.location === 'granted' || p.coarseLocation === 'granted'));
+      if (p && (p.location === 'granted' || p.coarseLocation === 'granted')) {
+        try { return await G.getCurrentPosition({enableHighAccuracy: true, timeout: 15000, maximumAge: 30000}); }
+        catch (e0) { return await G.getCurrentPosition({enableHighAccuracy: false, timeout: 12000, maximumAge: 600000}); }
+      }
+    } catch (e) {
+      console.warn('Native GPS error:', e);
+    }
+  }
+
+  // 2. فحص متصفح الويب بدقة عالية أولاً ثم بدقة الشبكة
+  if (navigator.geolocation) {
+    try {
+      return await new Promise((res, rej) => {
+        navigator.geolocation.getCurrentPosition(res, rej, {
+          enableHighAccuracy: true,
+          timeout: 7000,
+          maximumAge: 60000
+        });
+      });
+    } catch (e1) {
+      return await new Promise((res, rej) => {
+        navigator.geolocation.getCurrentPosition(res, rej, {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 300000
+        });
+      });
+    }
+  }
+
+  throw {message: 'unsupported'};
+}
+
+async function getLocationByGPS() {
+  const label = document.getElementById('display-location'), prev = label ? label.textContent : '';
+  if (label) label.textContent = 'جاري تحديد الموقع...';
+
+  // المحاولة الأولى: عبر GPS المباشر
+  try {
+    const pos = await getPosition();
+    if (pos && pos.coords) {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      store.set('auto-location', '1');
+      store.set('last-gps', userLat + ',' + userLng);
+      const alc = document.getElementById('auto-location');
+      if (alc) alc.checked = true;
+      await fetchByCoords(userLat, userLng, await placeLabel(userLat, userLng, 'موقعك الحالي (GPS)'));
+      switchTab('timings', document.querySelectorAll('.nav-item')[0], 'مواقيت الصلاة');
+      alert('تم تحديد الموقع بنجاح عبر GPS وتحديث مواقيت الصلاة.');
+      return;
+    }
+  } catch (gpsError) {
+    console.warn('GPS hardware/permission error, trying network IP fallback', gpsError);
+  }
+
+  offerOpenSettings();
+  // المحاولة الثانية التلقائية: عبر شبكة الإنترنت (IP) لضمان عدم توقف المستخدم
+  if (label) label.textContent = 'تحديد الموقع عبر الشبكة...';
+  try {
+    const ipLoc = await getApproximateLocationByIP();
+    if (ipLoc && ipLoc.lat && ipLoc.lng) {
+      userLat = ipLoc.lat;
+      userLng = ipLoc.lng;
+      store.set('auto-location', '1');
+      store.set('last-gps', userLat + ',' + userLng);
+      const alc = document.getElementById('auto-location');
+      if (alc) alc.checked = true;
+      await fetchByCoords(userLat, userLng, (await placeLabel(userLat, userLng, ipLoc.label)) + ' (تقريبي)', true);
+      switchTab('timings', document.querySelectorAll('.nav-item')[0], 'مواقيت الصلاة');
+      alert(`تم تحديد مدينتك (${ipLoc.label}) وتحديث المواقيت تلقائياً. للحصول على إحداثيات دقيقة يمكنك السماح بصلاحية الموقع من إعدادات الهاتف.`);
+      return;
+    }
+  } catch (ipErr) {
+    console.warn('IP fallback failed', ipErr);
+  }
+
+  if (label) label.textContent = prev;
+  alert('تعذر تحديد الموقع تلقائياً. يمكنك كتابة اسم مدينتك ودولتك في الأسفل والضغط على "حفظ وتحديث المواقيت".');
+}
+
+// ===== القبلة =====
+let qiblaAngle = 0, compassListening = false;
+let currentDialHeading = 0, lastRawHeading = null;
+let lastHeading = 0, haveHeading = false, lastAlignedState = false;
+let absSensor = null;
+
+let lastNativeH = null, nativeCompassOn = false, nativeHeadingHandle = null, smS = 0, smC = 0, smInit = false;
+function calcQibla() {
+  const r = Math.PI / 180;
+  const mLat = 21.422487 * r, mLng = 39.826206 * r;
+  const lat = userLat * r, lng = userLng * r;
+  const y = Math.sin(mLng - lng);
+  const x = Math.cos(lat) * Math.tan(mLat) - Math.sin(lat) * Math.cos(mLng - lng);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function unwrapHeading(newHeading) {
+  if (lastRawHeading === null) {
+    currentDialHeading = newHeading;
+    lastRawHeading = newHeading;
+    return currentDialHeading;
+  }
+  const diff = (((newHeading - (currentDialHeading % 360)) + 540) % 360) - 180;
+  currentDialHeading += diff;
+  lastRawHeading = newHeading;
+  return currentDialHeading;
+}
+
+function getCardinalDirection(deg) {
+  const dirs = ['شمال', 'شمال شرق', 'شرق', 'جنوب شرق', 'جنوب', 'جنوب غرب', 'غرب', 'شمال غرب'];
+  const i = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
+  return dirs[i];
+}
+
+function setCompass(heading, live) {
+  lastHeading = heading;
+  const unwrapped = unwrapHeading(heading);
+  const dial = document.getElementById('compass-dial');
+  const arrow = document.getElementById('qibla-arrow');
+  const kaaba = document.getElementById('kaaba');
+
+  if (dial) dial.style.transform = `rotate(${-unwrapped}deg)`;
+  if (arrow) arrow.style.transform = `rotate(${qiblaAngle}deg)`;
+  if (kaaba) kaaba.style.transform = `translateX(-50%) rotate(${unwrapped - qiblaAngle}deg)`;
+
+  const degEl = document.getElementById('qibla-degree');
+  const targetEl = document.getElementById('qibla-target-angle');
+  const statusEl = document.getElementById('qibla-status');
+  const compassBox = document.getElementById('compass-circle')?.parentElement;
+
+  if (targetEl) targetEl.textContent = `${Math.round(qiblaAngle)}°`;
+
+  if (!live) {
+    if (degEl) degEl.textContent = `${Math.round(qiblaAngle)}°`;
+    return;
+  }
+
+  const roundedHeading = Math.round(((heading % 360) + 360) % 360);
+  const cardDir = getCardinalDirection(roundedHeading);
+  if (degEl) degEl.innerHTML = `<span>${roundedHeading}°</span> <small style="font-size:13px;font-weight:600;opacity:0.85">(${cardDir})</small>`;
+
+  const diff = (((qiblaAngle - heading) % 360) + 540) % 360 - 180;
+  const isAligned = Math.abs(diff) <= 4;
+
+  if (compassBox) compassBox.classList.toggle('aligned', isAligned);
+
+  if (isAligned) {
+    if (statusEl) statusEl.innerHTML = '<b>أنت تواجه الكعبة المشرفة مباشرة 🕋</b>';
+    if (!lastAlignedState) {
+      try { navigator.vibrate?.(60); } catch (e) {}
+      lastAlignedState = true;
+    }
+  } else {
+    lastAlignedState = false;
+    const turnText = diff > 0 ? `أدر الهاتف يميناً بمقدار ${Math.round(Math.abs(diff))}°` : `أدر الهاتف يساراً بمقدار ${Math.round(Math.abs(diff))}°`;
+    if (statusEl) statusEl.textContent = `${turnText} نحو الكعبة المشرفة`;
+  }
+}
+
+function tiltHeading(alpha, beta, gamma) {
+  if (Math.abs(beta || 0) < 45) return (360 - alpha) % 360;            // الهاتف مسطح: اتجاه رأس الهاتف
+  const d = Math.PI / 180, x = (beta || 0) * d, y = (gamma || 0) * d, z = alpha * d;  // الهاتف قائم: اتجاه الخلف
+  const cY = Math.cos(y), cZ = Math.cos(z), sX = Math.sin(x), sY = Math.sin(y), sZ = Math.sin(z);
+  const vx = -cZ * sY - sZ * sX * cY, vy = -sZ * sY + cZ * sX * cY;
+  let h = Math.atan(vx / vy);
+  if (vy < 0) h += Math.PI; else if (vx < 0) h += 2 * Math.PI;
+  return (h * 180 / Math.PI + 360) % 360;
+}
+function smoothHeading(h) {
+  const r = h * Math.PI / 180;
+  if (!smInit) { smS = Math.sin(r); smC = Math.cos(r); smInit = true; }
+  else { smS += 0.2 * (Math.sin(r) - smS); smC += 0.2 * (Math.cos(r) - smC); }
+  return (Math.atan2(smS, smC) * 180 / Math.PI + 360) % 360;
+}
+function onOrientation(e) {
+  if (nativeCompassOn) return;
+  let heading = null;
+  if (typeof e.webkitCompassHeading === 'number' && !isNaN(e.webkitCompassHeading)) heading = e.webkitCompassHeading;   // iOS
+  else if (e.absolute === true && typeof e.alpha === 'number') heading = tiltHeading(e.alpha, e.beta, e.gamma);          // أندرويد (مطلق فقط)
+  if (heading === null) return;
+  const screenAngle = window.screen?.orientation?.angle ?? (window.orientation || 0);
+  heading = smoothHeading((heading + screenAngle + 360) % 360);
+  haveHeading = true;
+  setCompass(heading, true);
+}
+
+function tryAbsoluteSensor() {
+  return; // معطّل: قراءته غير دقيقة، نعتمد على حساس أندرويد الأصلي أو الأحداث المطلقة
+  if (typeof AbsoluteOrientationSensor !== 'undefined' && !absSensor) {
+    try {
+      absSensor = new AbsoluteOrientationSensor({ frequency: 60 });
+      absSensor.addEventListener('reading', () => {
+        const q = absSensor.quaternion;
+        if (q && q.length === 4) {
+          const [x, y, z, w] = q;
+          let heading = (Math.atan2(2 * (x * y - w * z), 1 - 2 * (x * x + z * z)) * 180 / Math.PI + 360) % 360;
+          const screenAngle = window.screen?.orientation?.angle ?? (window.orientation || 0);
+          heading = (heading + screenAngle + 360) % 360;
+          haveHeading = true;
+          setCompass(heading, true);
+        }
+      });
+      absSensor.addEventListener('error', () => { absSensor = null; });
+      absSensor.start();
+    } catch (err) {
+      absSensor = null;
+    }
+  }
+}
+
+async function startNativeCompass() {
+  const pl = getPL();
+  if (!isNative() || !pl) return false;
+  try {
+    if (!nativeHeadingHandle) {
+      nativeHeadingHandle = await pl.addListener('heading', ev => {
+        const h = ev.heading;
+        if (lastNativeH !== null && Math.abs(((h - lastNativeH + 540) % 360) - 180) < 0.8) return;   // تثبيت: تجاهل الاهتزاز الصغير
+        lastNativeH = h; haveHeading = true; setCompass(h, true);
+      });
+    }
+    await pl.startCompass({lat: userLat, lng: userLng});
+    nativeCompassOn = true;
+    return true;
+  } catch (e) { nativeCompassOn = false; return false; }
+}
+function startWebCompass() {
+  window.addEventListener('deviceorientationabsolute', onOrientation, true);
+  window.addEventListener('deviceorientation', onOrientation, true);
+}
+function startCompassListeners() {
+  if (compassListening) return;
+  compassListening = true;
+  startNativeCompass().then(ok => { if (!ok) startWebCompass(); });
+}
+
+async function enableCompass() {
+  try {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      const res = await DeviceOrientationEvent.requestPermission();
+      if (res !== 'granted') {
+        document.getElementById('qibla-status').textContent = 'تم رفض إذن البوصلة في المتصفح';
+        return;
+      }
+    }
+    if (navigator.permissions && navigator.permissions.query) {
+      try { await navigator.permissions.query({ name: 'accelerometer' }); } catch (e) {}
+      try { await navigator.permissions.query({ name: 'magnetometer' }); } catch (e) {}
+      try { await navigator.permissions.query({ name: 'gyroscope' }); } catch (e) {}
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+
+  tryAbsoluteSensor();
+  startCompassListeners();
+  document.getElementById('qibla-status').textContent = 'جاري ضبط اتجاه البوصلة...';
+  try { navigator.vibrate?.(35); } catch (e) {}
+}
+
+function refreshQibla() {
+  qiblaAngle = calcQibla();
+  if (nativeCompassOn) { try { getPL().startCompass({lat: userLat, lng: userLng}).catch(() => {}); } catch (e) {} }
+  const targetEl = document.getElementById('qibla-target-angle');
+  if (targetEl) targetEl.textContent = `${Math.round(qiblaAngle)}°`;
+  setCompass(lastHeading, haveHeading);
+}
+
+function initQibla() {
+  refreshQibla();
+  startCompassListeners();
+  initCompassDrag();
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    const btn = document.getElementById('compass-btn');
+    if (btn) btn.textContent = 'اضغط للسماح بالبوصلة';
+  }
+  setTimeout(() => {
+    if (!haveHeading) {
+      const status = document.getElementById('qibla-status');
+      if (status) status.textContent = 'حرّك الهاتف على شكل 8 لمعايرة الحساس، أو يمكنك تدوير البوصلة باللمس';
+    }
+  }, 2500);
+}
+
+let isDraggingCompass = false, dragStartAngle = 0, dragStartHeading = 0;
+function initCompassDrag() {
+  const dial = document.getElementById('compass-circle');
+  if (!dial || dial._dragAttached) return;
+  dial._dragAttached = true;
+
+  const getAngle = (e) => {
+    const rect = dial.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return Math.atan2(clientX - cx, cy - clientY) * 180 / Math.PI;
+  };
+
+  const onStart = (e) => {
+    isDraggingCompass = true;
+    dragStartAngle = getAngle(e);
+    dragStartHeading = lastHeading;
+  };
+  const onMove = (e) => {
+    if (!isDraggingCompass) return;
+    const angle = getAngle(e);
+    const newHeading = ((dragStartHeading - (angle - dragStartAngle)) % 360 + 360) % 360;
+    setCompass(newHeading, true);
+  };
+  const onEnd = () => { isDraggingCompass = false; };
+
+  dial.addEventListener('mousedown', onStart);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onEnd);
+
+  dial.addEventListener('touchstart', onStart, { passive: true });
+  dial.addEventListener('touchmove', onMove, { passive: true });
+  dial.addEventListener('touchend', onEnd);
+}
+function buildDial() {
+  let h = '<circle cx="145" cy="145" r="118" fill="none" stroke="#e6b94a" stroke-opacity=".35"/>';
+  for (let a = 0; a < 360; a += 5) {
+    const big = a % 30 === 0, r2 = big ? 121 : 128, rad = a * Math.PI / 180;
+    h += `<line x1="${145 + 135 * Math.sin(rad)}" y1="${145 - 135 * Math.cos(rad)}" x2="${145 + r2 * Math.sin(rad)}" y2="${145 - r2 * Math.cos(rad)}" stroke="#e6b94a" stroke-width="${big ? 2 : 1}" stroke-opacity="${big ? 1 : .6}"/>`;
+  }
+  [['N', 0], ['E', 90], ['S', 180], ['W', 270]].forEach(([t, a]) => {
+    const rad = a * Math.PI / 180, x = 145 + 108 * Math.sin(rad), y = 145 - 108 * Math.cos(rad);
+    h += `<circle cx="${x}" cy="${y}" r="15" fill="#0a0a0a" stroke="#e6b94a" stroke-width="2"/><text x="${x}" y="${y + 6}" text-anchor="middle" font-size="18" font-weight="800" fill="#f7d874" font-family="Cairo,sans-serif">${t}</text>`;
+  });
+  document.getElementById('dial-svg').innerHTML = h;
+}
+
+// التمرير السلس والسريع مدعوم بالكامل عبر CSS (overscroll-behavior و -webkit-overflow-scrolling)
+
+
+// ===== تحديث الموقع تلقائياً، وإيقاف صوت المعاينة عند مغادرة التطبيق =====
+const autoLoc = () => { const v = store.get('auto-location'); return v === null ? isNative() : v === '1'; };
+function toggleAutoLocation(on) { store.set('auto-location', on ? '1' : '0'); if (on) getLocationByGPS(); }
+function distKm(a, b, c, d) {
+  const r = x => x * Math.PI / 180, q = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(q));
+}
+let locating = false;
+async function autoLocate() {
+  if (locating) return;
+  locating = true;
+  try {
+    const pos = await getPosition();
+    const la = pos.coords.latitude, ln = pos.coords.longitude;
+    if (lastSource && lastSource.type === 'gps' && !lastSource.approx && distKm(+lastSource.lat, +lastSource.lng, la, ln) < 3) return;
+    userLat = la; userLng = ln;
+    store.set('last-gps', la + ',' + ln);
+    await fetchByCoords(la, ln, await placeLabel(la, ln, 'موقعك الحالي (GPS)'));
+  } catch (e) { /* صامت: يبقى الموقع المحفوظ */ }
+  finally { locating = false; }
+}
+function stopPreview() {
+  if (!previewing) return;
+  try { adhanAudio.pause(); adhanAudio.currentTime = 0; } catch (e) {}
+  clearTimeout(previewTimer);
+}
+['app-paused', 'pagehide', 'blur'].forEach(ev => window.addEventListener(ev, stopPreview));
+let lastResume = 0;
+function onAppResume() {
+  if (Date.now() - lastResume < 1500) return;
+  lastResume = Date.now();
+  refreshOverlayStatus();
+  refreshLocPerm();
+  updateDateBar();
+  if (typeof loadedDay !== 'undefined' && localDayKey() !== loadedDay) refetchToday();
+  startCountdown();
+  if (autoLoc()) autoLocate();
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopPreview(); else onAppResume(); });
+window.addEventListener('app-resumed', onAppResume);
+
+// ===== التهيئة =====
+(async function initApp() {
+await restoreFromNative();
+startAdhanPoll();
+refreshOverlayStatus();
+refreshLocPerm();
+const savedTheme = store.get('app-theme') || 'charcoal';
+document.getElementById('theme-selector').value = savedTheme;
+document.documentElement.setAttribute('data-theme', savedTheme);
+markSwatch(savedTheme);
+applyVolumeUI(getVol());
+const savedReminder = store.get('app-reminder') || 'chime';
+document.getElementById('reminder-selector').value = savedReminder;
+if (savedReminder === 'custom') { document.getElementById('reminder-custom-section').style.display = 'block'; checkReminderFile(); }
+let savedAdhan = store.get('app-adhan') || 'abdulbasit';
+if (!['abdulbasit', 'mishary', 'custom'].includes(savedAdhan)) savedAdhan = 'abdulbasit';
+document.getElementById('adhan-selector').value = savedAdhan;
+if (savedAdhan === 'custom') { document.getElementById('custom-upload-section').style.display = 'block'; checkCustomFileStatus(); }
+document.getElementById('auto-adhan').checked = store.get('auto-adhan') !== '0';
+const savedCity = store.get('userCity') || 'Cairo', savedCountry = store.get('userCountry') || 'Egypt';
+document.getElementById('manual-city').value = savedCity;
+document.getElementById('manual-country').value = savedCountry;
+updateDateBar();
+buildDial();
+refreshQibla();
+if (isNative() || (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission !== 'function')) startCompassListeners();
+document.getElementById('auto-location').checked = autoLoc();
+let savedSrc = null;
+try { savedSrc = JSON.parse(store.get('last-source')); } catch (e) {}
+if (autoLoc() && savedSrc && savedSrc.s) renderSource(savedSrc.s, savedSrc.label || 'موقعك الحالي (GPS)');
+else if (!autoLoc() || !savedSrc) fetchByCity(savedCity, savedCountry);
+else fetchByCity(savedCity, savedCountry);
+if (autoLoc()) setTimeout(autoLocate, 1500);
+})();
+</script>
+</body>
+</html>
