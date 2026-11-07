@@ -1,0 +1,31 @@
+{
+  "name": "مواقيت الصلاة - أذان وقبلة",
+  "short_name": "مواقيت الصلاة",
+  "description": "تطبيق مواقيت الصلاة والأذان وتحديد اتجاه القبلة والتقويم الهجري",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#060606",
+  "theme_color": "#060606",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
