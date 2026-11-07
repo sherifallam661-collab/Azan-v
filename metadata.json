@@ -1,8 +1,0 @@
-{
-  "name": "Prayer Times-Azan",
-  "description": "Prayer times and Qibla direction web app with Islamic calendar, adhan notifications, and custom themes.",
-  "permissions": [],
-  "capabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}
